@@ -24,11 +24,11 @@ func respondError(w http.ResponseWriter, code int, message string) {
 }
 
 func respondGenericError(w http.ResponseWriter)  {
-	respondJSON(w, 500, map[string]string{"error": "Oops, something went wrong. Please try again later."})
+	respondJSON(w, http.StatusInternalServerError, map[string]string{"error": "Oops, something went wrong. Please try again later."})
 }
 
 func respondBadRequest(w http.ResponseWriter)  {
-	respondJSON(w, 400, map[string]string{"error": "Incorrect payload"})
+	respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Incorrect payload"})
 }
 
 func handleError(w http.ResponseWriter, customError customError.Error)  {

@@ -1,5 +1,7 @@
 package customError
 
+import "net/http"
+
 type Error interface {
 	OriginalError() error
 	Code() int
@@ -17,7 +19,7 @@ func NewHttpError(code int, message string, err error) Error {
 }
 
 func NewGenericHttpError(err error) Error {
-	return &HttpError{500, "Oops, something went wrong. Please try again later.", err}
+	return &HttpError{http.StatusInternalServerError, "Oops, something went wrong. Please try again later.", err}
 }
 
 func (e *HttpError) OriginalError() error {

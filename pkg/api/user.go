@@ -6,7 +6,6 @@ import (
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/user/repository"
 	"github.com/skyerus/riptides-go/pkg/user/service"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -16,17 +15,10 @@ import (
 
 func CreateUser(w http.ResponseWriter, r *http.Request)  {
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		log.Println(err)
-		respondGenericError(w)
-		return
-	}
-	user := models.User{}
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		log.Println(err)
-		respondGenericError(w)
+		respondBadRequest(w)
 		return
 	}
 	if user.Username == "" || user.Email == "" || user.Password == "" {
@@ -51,4 +43,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 	}
 
 	respondJSON(w, 200, nil)
+}
+
+func Login(w http.ResponseWriter, r *http.Request)  {
+	var creds models.Credentials
+	err := json.NewDecoder(r.Body).Decode(&creds)
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+
 }

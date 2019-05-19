@@ -6,6 +6,8 @@ import (
 )
 
 type Repository interface {
-	Create(user models.User, c chan string, m chan map[string]bool, e chan error) customError.Error
-	DoesUserExist(user models.User, m chan map[string]bool, e chan error)
+	Create(user models.User) customError.Error
+	DoesUserExistWithUsername(username string) (bool, error)
+	DoesUserExistWithEmail(email string) (bool, error)
+	Get(user *models.User) customError.Error
 }

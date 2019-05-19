@@ -18,6 +18,7 @@ func (a *App) Initialize() {
 func (a *App) setRouters() {
 	a.Get("/healthcheck", HealthCheck)
 	a.Post("/api/user", CreateUser)
+	a.Post("/api/login", Login)
 }
 
 // HTTP wrappers
