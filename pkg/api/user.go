@@ -29,6 +29,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 		respondGenericError(w)
 		return
 	}
+	if user.Username == "" || user.Email == "" || user.Password == "" {
+		respondBadRequest(w)
+		return
+	}
 
 	db, err := sql.Open("mysql", os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ")/" + os.Getenv("DB_NAME"))
 	if err != nil {
@@ -39,11 +43,10 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 	defer db.Close()
 	userRepo := repository.NewMysqlUserRepository(db)
 	userService := service.NewUserService(userRepo)
-	err = userService.Create(user)
+	customError := userService.Create(user)
 
-	if err != nil {
-		log.Println(err)
-		respondGenericError(w)
+	if customError != nil {
+		handleError(w, customError)
 		return
 	}
 

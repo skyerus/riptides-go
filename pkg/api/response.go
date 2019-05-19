@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/skyerus/riptides-go/pkg/customError"
+	"log"
 	"net/http"
 )
 
@@ -23,4 +25,15 @@ func respondError(w http.ResponseWriter, code int, message string) {
 
 func respondGenericError(w http.ResponseWriter)  {
 	respondJSON(w, 500, map[string]string{"error": "Oops, something went wrong. Please try again later."})
+}
+
+func respondBadRequest(w http.ResponseWriter)  {
+	respondJSON(w, 400, map[string]string{"error": "Incorrect payload"})
+}
+
+func handleError(w http.ResponseWriter, customError customError.Error)  {
+	if customError.OriginalError() != nil {
+		log.Println(customError.OriginalError())
+	}
+	respondError(w, customError.Code(), customError.Message())
 }
