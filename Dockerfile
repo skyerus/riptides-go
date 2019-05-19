@@ -1,11 +1,12 @@
 # Compile stage
 FROM golang:1.12.5-alpine3.9 AS build-env
 ENV CGO_ENABLED 0
-ADD . /go/src/github.com/skyerus/riptides-go
-RUN go build -gcflags "all=-N -l" -o /riptides-go github.com/skyerus/riptides-go/api
 
 RUN apk add --no-cache git
 RUN go get github.com/derekparker/delve/cmd/dlv
+
+ADD . /go/src/github.com/skyerus/riptides-go
+RUN go build -gcflags "all=-N -l" -o /riptides-go github.com/skyerus/riptides-go
 
 # Final stage
 FROM alpine:3.9
