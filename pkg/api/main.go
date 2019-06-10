@@ -16,9 +16,11 @@ func (a *App) Initialize() {
 }
 
 func (a *App) setRouters() {
+	a.Router.PathPrefix("/api/auth/").Subrouter().Use(Auth)
 	a.Get("/healthcheck", HealthCheck)
 	a.Post("/api/user", CreateUser)
 	a.Post("/api/login", Login)
+	a.Router.Use()
 }
 
 // HTTP wrappers
