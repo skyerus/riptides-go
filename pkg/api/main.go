@@ -1,9 +1,11 @@
 package api
 
 import (
+	"database/sql"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -21,6 +23,7 @@ func (a *App) setRouters() {
 	a.Get("/healthcheck", HealthCheck)
 	a.Post("/api/user", CreateUser)
 	a.Post("/api/login", Login)
+	a.Get("/api/auth/user/{username}/following", GetFollowing)
 	a.Router.Use()
 }
 
@@ -50,4 +53,8 @@ func (a *App) Run(host string) {
 		ReadTimeout:  15 * time.Second,
 	}
 	log.Fatal(srv.ListenAndServe())
+}
+
+func openDb() (*sql.DB, error) {
+	return sql.Open("mysql", os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ")/" + os.Getenv("DB_NAME"))
 }

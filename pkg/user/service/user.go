@@ -81,7 +81,10 @@ func (u userService) Authenticate(creds models.Credentials) bool {
 
 	authUser := models.User{}
 	authUser.Username = creds.Username
-	u.userRepo.Get(&authUser)
+	customErr := u.userRepo.Get(&authUser)
+	if customErr != nil {
+		return false
+	}
 
 	err := hash.Compare(authUser.Password, creds.Password)
 	if err != nil {
@@ -104,4 +107,38 @@ func (u userService) VerifyToken(token string) (*jwt.Token, error) {
 	return jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
+}
+
+func (u userService) Get(username string) (models.User, customError.Error) {
+	User := models.User{}
+	User.Username = username
+	customErr := u.userRepo.Get(&User)
+	if customErr != nil {
+		return User, customErr
+	}
+	return User, nil
+}
+
+func (u userService) GetCurrentUser(r *http.Request) (models.User, customError.Error) {
+	User := models.User{}
+	token := r.Header.Get("Authorization")
+
+	if len(token) < 7 {
+		return User, customError.NewGenericHttpError(nil)
+	}
+	token = token[7:]
+	claims := models.Claims{}
+	Token, _, err := new(jwt.Parser).ParseUnverified(token, claims)
+	if err != nil {
+		return User, customError.NewGenericHttpError(nil)
+	}
+
+	tokenClaims := Token.Claims
+	username := tokenClaims.Username
+
+	return u.Get(username)
+}
+
+func (u userService) GetMyFollowing(currentUser models.User, offset int, limit int) {
+
 }

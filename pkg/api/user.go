@@ -1,9 +1,9 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/user/repository"
 	"github.com/skyerus/riptides-go/pkg/user/service"
@@ -29,7 +29,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	db, err := sql.Open("mysql", os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ")/" + os.Getenv("DB_NAME"))
+	db, err := openDb()
 	if err != nil {
 		log.Println(err)
 		respondGenericError(w)
@@ -57,7 +57,7 @@ func Login(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	db, err := sql.Open("mysql", os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ")/" + os.Getenv("DB_NAME"))
+	db, err := openDb()
 	if err != nil {
 		log.Println(err)
 		respondGenericError(w)
@@ -99,4 +99,35 @@ func Login(w http.ResponseWriter, r *http.Request)  {
 	response["token"] = tokenString
 
 	respondJSON(w, http.StatusOK, response)
+}
+
+func GetFollowing(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	offset := params.Get("offset")
+	limit := params.Get("limit")
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+
 }

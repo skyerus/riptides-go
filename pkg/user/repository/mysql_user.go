@@ -5,6 +5,7 @@ import (
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/user"
+	"net/http"
 )
 
 type mysqlUserRepository struct {
@@ -50,11 +51,13 @@ func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
 		return customError.NewGenericHttpError(err)
 	}
 
-	for results.Next() {
-		err = results.Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Salt, &user.Avatar, &user.Bio)
-		if err != nil {
-			return customError.NewGenericHttpError(err)
-		}
+	res := results.Next()
+	if !res {
+		return customError.NewHttpError(http.StatusBadRequest, "No user exists with this username", nil)
+	}
+	err = results.Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Salt, &user.Avatar, &user.Bio)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
 	}
 
 	return nil
