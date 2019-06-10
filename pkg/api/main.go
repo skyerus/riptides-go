@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"time"
 )
 
 type App struct {
@@ -42,5 +43,11 @@ func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)
 
 
 func (a *App) Run(host string) {
-	log.Fatal(http.ListenAndServe(host, a.Router))
+	srv := &http.Server{
+		Handler: a.Router,
+		Addr: host,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	log.Fatal(srv.ListenAndServe())
 }
