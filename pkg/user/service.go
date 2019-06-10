@@ -14,4 +14,5 @@ type Service interface {
 	VerifyToken(token string) (*jwt.Token, error)
 	Get(username string) (models.User, customError.Error)
 	GetCurrentUser(r *http.Request) (models.User, customError.Error)
+	GetMyFollowing(currentUser models.User, offset int, limit int) ([]models.Following, customError.Error)
 }

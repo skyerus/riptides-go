@@ -12,6 +12,11 @@ type User struct {
 	Bio string `json:"bio"`
 }
 
+type Following struct {
+	User User `json:"user"`
+	Following bool `json:"following"`
+}
+
 type Credentials struct {
 	Password string `json:"password"`
 	Username string `json:"username"`

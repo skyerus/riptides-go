@@ -139,6 +139,8 @@ func (u userService) GetCurrentUser(r *http.Request) (models.User, customError.E
 	return u.Get(username)
 }
 
-func (u userService) GetMyFollowing(currentUser models.User, offset int, limit int) {
-
+func (u userService) GetMyFollowing(currentUser models.User, offset int, limit int) ([]models.Following, customError.Error) {
+	if following, customErr := u.userRepo.GetFollowing(&currentUser, offset, limit); customErr != nil {
+		return following, customErr
+	}
 }

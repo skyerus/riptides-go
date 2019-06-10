@@ -10,4 +10,5 @@ type Repository interface {
 	DoesUserExistWithUsername(username string) (bool, error)
 	DoesUserExistWithEmail(email string) (bool, error)
 	Get(user *models.User) customError.Error
+	GetFollowing(user *models.User, offset int, limit int) ([]models.Following, customError.Error)
 }
