@@ -31,6 +31,10 @@ func respondBadRequest(w http.ResponseWriter)  {
 	respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Incorrect payload"})
 }
 
+func respondUnauthorizedRequest(w http.ResponseWriter) {
+	respondJSON(w, http.StatusUnauthorized, map[string]string{"error": "Unauthorized request"})
+}
+
 func handleError(w http.ResponseWriter, customError customError.Error)  {
 	if customError.OriginalError() != nil {
 		log.Println(customError.OriginalError())

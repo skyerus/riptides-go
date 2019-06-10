@@ -1,11 +1,15 @@
 package service
 
 import (
+	"github.com/dgrijalva/jwt-go"
 	"github.com/skyerus/riptides-go/pkg/crypto"
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/user"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 )
 
 type userService struct {
@@ -77,8 +81,27 @@ func (u userService) Authenticate(creds models.Credentials) bool {
 
 	authUser := models.User{}
 	authUser.Username = creds.Username
-	c := make(chan string, 1)
-	e := make(chan error, 1)
-	go hash.Generate(creds.Password, c, e)
 	u.userRepo.Get(&authUser)
+
+	err := hash.Compare(authUser.Password, creds.Password)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func (u userService) VerifyToken(token string) (*jwt.Token, error) {
+	claims := &models.Claims{}
+
+	jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/private.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer jwtFile.Close()
+
+	jwtKey, err := ioutil.ReadAll(jwtFile)
+
+	return jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
 }
