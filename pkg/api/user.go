@@ -149,5 +149,11 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondJSON(w, http.StatusOK, nil)
+	following, customErr := userService.GetFollowing(CurrentUser, User, offset, limit)
+	if customErr != nil {
+		respondGenericError(w)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, following)
 }

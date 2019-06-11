@@ -46,7 +46,7 @@ func (mysql mysqlUserRepository) DoesUserExistWithEmail(email string) (bool, err
 }
 
 func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
-	results, err := mysql.Conn.Query("SELECT * FROM user WHERE username = ?", user.Username)
+	results, err := mysql.Conn.Query("SELECT user.id, user.username, user.email, user.avatar, user.bio FROM user WHERE username = ?", user.Username)
 	defer results.Close()
 	if err != nil {
 		return customError.NewGenericHttpError(err)
@@ -55,7 +55,7 @@ func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
 	if !res {
 		return customError.NewHttpError(http.StatusBadRequest, "No user exists with this username", nil)
 	}
-	err = results.Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Salt, &user.Avatar, &user.Bio)
+	err = results.Scan(&user.ID, &user.Username, &user.Email, &user.Avatar, &user.Bio)
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}
@@ -82,6 +82,13 @@ func (mysql mysqlUserRepository) GetFollowing(user *models.User, offset int, lim
 	}
 
 	return users, nil
+}
+
+func (mysql mysqlUserRepository) DoesUserFollow(currentUser *models.User, user *models.User) (bool, error) {
+	var exists bool
+	err := mysql.Conn.QueryRow("SELECT EXISTS(SELECT 1 FROM user_follow_user WHERE following_id = ? AND follower_id = ?)", currentUser.ID, user.ID).Scan(&exists)
+
+	return exists, err
 }
 
 

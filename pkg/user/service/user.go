@@ -145,3 +145,22 @@ func (u userService) GetCurrentUser(r *http.Request) (models.User, customError.E
 func (u userService) GetMyFollowing(currentUser models.User, offset int, limit int) ([]models.Following, customError.Error) {
 	return u.userRepo.GetFollowing(&currentUser, offset, limit)
 }
+
+func (u userService) GetFollowing(currentUser models.User, user models.User, offset int, limit int) ([]models.Following, customError.Error) {
+	following, customErr := u.userRepo.GetFollowing(&user, offset, limit)
+	if customErr != nil {
+		return following, customErr
+	}
+
+	for i, follow := range following {
+		exists, err := u.userRepo.DoesUserFollow(&currentUser, &follow.User)
+		if err != nil {
+			return following, customError.NewGenericHttpError(err)
+		}
+		if !exists {
+			following[i].Following = false
+		}
+	}
+
+	return following, nil
+}
