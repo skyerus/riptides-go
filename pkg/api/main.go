@@ -11,39 +11,22 @@ import (
 
 type App struct {
 	Router *mux.Router
+	AuthRouter *mux.Router
 }
 
 func (a *App) Initialize() {
 	a.Router = mux.NewRouter()
+	a.AuthRouter = a.Router.PathPrefix("/api/auth").Subrouter()
+	a.AuthRouter.Use(Auth)
 	a.setRouters()
 }
 
 func (a *App) setRouters() {
-	a.Router.PathPrefix("/api/auth/").Subrouter().Use(Auth)
-	a.Get("/healthcheck", HealthCheck)
-	a.Post("/api/user", CreateUser)
-	a.Post("/api/login", Login)
-	a.Get("/api/auth/user/{username}/following", GetFollowing)
-	a.Router.Use()
+	a.Router.HandleFunc("/healthcheck", HealthCheck).Methods("GET")
+	a.Router.HandleFunc("/api/user", CreateUser).Methods("POST")
+	a.Router.HandleFunc("/api/login", Login).Methods("POST")
+	a.AuthRouter.HandleFunc("/user/{username}/following", GetFollowing).Methods("GET")
 }
-
-// HTTP wrappers
-func (a *App) Get(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("GET")
-}
-
-func (a *App) Post(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("POST")
-}
-
-func (a *App) Put(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("PUT")
-}
-
-func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("DELETE")
-}
-
 
 func (a *App) Run(host string) {
 	srv := &http.Server{

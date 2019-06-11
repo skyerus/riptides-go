@@ -127,20 +127,21 @@ func (u userService) GetCurrentUser(r *http.Request) (models.User, customError.E
 		return User, customError.NewGenericHttpError(nil)
 	}
 	token = token[7:]
-	claims := models.Claims{}
+	claims := &models.Claims{}
 	Token, _, err := new(jwt.Parser).ParseUnverified(token, claims)
 	if err != nil {
 		return User, customError.NewGenericHttpError(nil)
 	}
 
 	tokenClaims := Token.Claims
-	username := tokenClaims.Username
+	tokenClaims, ok := tokenClaims.(*models.Claims)
+	if !ok {
+		return User, customError.NewGenericHttpError(nil)
+	}
 
-	return u.Get(username)
+	return u.Get(claims.Username)
 }
 
 func (u userService) GetMyFollowing(currentUser models.User, offset int, limit int) ([]models.Following, customError.Error) {
-	if following, customErr := u.userRepo.GetFollowing(&currentUser, offset, limit); customErr != nil {
-		return following, customErr
-	}
+	return u.userRepo.GetFollowing(&currentUser, offset, limit)
 }

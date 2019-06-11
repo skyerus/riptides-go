@@ -64,8 +64,8 @@ func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
 }
 
 func (mysql mysqlUserRepository) GetFollowing(user *models.User, offset int, limit int) ([]models.Following, customError.Error) {
-	users := make([]models.Following, limit - offset)
-	query := "SELECT user.* FROM user LEFT JOIN (SELECT following_id, follower_id FROM user_follow_user GROUP BY id ORDER BY date_created DESC) as f ON user.id = f.follower_id WHERE f.following_id = ? LIMIT ?, ?"
+	var users []models.Following
+	query := "SELECT user.id, user.username, user.email, user.avatar, user.bio FROM user LEFT JOIN (SELECT following_id, follower_id FROM user_follow_user GROUP BY id ORDER BY date_created DESC) as f ON user.id = f.follower_id WHERE f.following_id = ? LIMIT ?, ?"
 	results, err := mysql.Conn.Query(query, user.ID, offset, limit)
 	if err != nil {
 		return users, customError.NewGenericHttpError(err)
@@ -74,10 +74,10 @@ func (mysql mysqlUserRepository) GetFollowing(user *models.User, offset int, lim
 
 	for results.Next() {
 		var u models.Following
-		if err := results.Scan(&u.User.ID, &u.User.Username, &u.User.Email, &u.User.Password, &u.User.Salt, &u.User.Avatar, &u.User.Bio); err != nil {
+		if err := results.Scan(&u.User.ID, &u.User.Username, &u.User.Email, &u.User.Avatar, &u.User.Bio); err != nil {
 			return users, customError.NewGenericHttpError(err)
 		}
-		u.Following = false
+		u.Following = true
 		users = append(users, u)
 	}
 

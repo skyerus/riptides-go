@@ -6,8 +6,8 @@ type User struct {
 	ID int `json:"id"`
 	Username string `json:"username"`
 	Email string `json:"email"`
-	Password string `json:"password"`
-	Salt string
+	Password string `json:"-"`
+	Salt string `json:"-"`
 	Avatar string `json:"avatar"`
 	Bio string `json:"bio"`
 }
@@ -25,6 +25,10 @@ type Credentials struct {
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
+}
+
+func (c Claims) Valid() error {
+	return nil
 }
 
 type UserService interface {

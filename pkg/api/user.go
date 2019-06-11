@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -103,8 +104,16 @@ func Login(w http.ResponseWriter, r *http.Request)  {
 
 func GetFollowing(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
-	offset := params.Get("offset")
-	limit := params.Get("limit")
+	offset, err := strconv.Atoi(params.Get("offset"))
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+	limit, err := strconv.Atoi(params.Get("limit"))
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
 	username := mux.Vars(r)["username"]
 
 	db, err := openDb()
@@ -129,5 +138,16 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if CurrentUser.ID == User.ID {
+		following, customErr := userService.GetMyFollowing(CurrentUser, offset, limit)
+		if customErr != nil {
+			respondGenericError(w)
+			return
+		}
 
+		respondJSON(w, http.StatusOK, following)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, nil)
 }
