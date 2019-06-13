@@ -28,7 +28,7 @@ type Claims struct {
 }
 
 func (c Claims) Valid() error {
-	return nil
+	return c.StandardClaims.Valid()
 }
 
 type UserService interface {

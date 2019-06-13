@@ -46,7 +46,7 @@ func (mysql mysqlUserRepository) DoesUserExistWithEmail(email string) (bool, err
 }
 
 func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
-	results, err := mysql.Conn.Query("SELECT user.id, user.username, user.email, user.avatar, user.bio FROM user WHERE username = ?", user.Username)
+	results, err := mysql.Conn.Query("SELECT user.id, user.username, user.password, user.email, user.avatar, user.bio FROM user WHERE username = ?", user.Username)
 	defer results.Close()
 	if err != nil {
 		return customError.NewGenericHttpError(err)
@@ -55,7 +55,7 @@ func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
 	if !res {
 		return customError.NewHttpError(http.StatusBadRequest, "No user exists with this username", nil)
 	}
-	err = results.Scan(&user.ID, &user.Username, &user.Email, &user.Avatar, &user.Bio)
+	err = results.Scan(&user.ID, &user.Username, &user.Password, &user.Email, &user.Avatar, &user.Bio)
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}
