@@ -22,6 +22,10 @@ type Credentials struct {
 	Username string `json:"username"`
 }
 
+type FollowCount struct {
+	Count int `json:"count"`
+}
+
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
@@ -31,9 +35,3 @@ func (c Claims) Valid() error {
 	return c.StandardClaims.Valid()
 }
 
-type UserService interface {
-	User(id int) (*User, error)
-	Users() ([]*User, error)
-	CreateUser(u *User) error
-	DeleteUser(id int) error
-}

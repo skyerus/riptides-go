@@ -112,4 +112,40 @@ func (mysql mysqlUserRepository) GetFollowers(user *models.User, offset int, lim
 	return users, nil
 }
 
+func (mysql mysqlUserRepository) GetFollowingCount(user *models.User) (int, customError.Error) {
+	var number int
+	results, err := mysql.Conn.Query("SELECT COUNT(u.id) FROM riptides.user_follow_user as u WHERE u.following_id = ?", user.ID)
+	defer results.Close()
+	if err != nil {
+		return number, customError.NewGenericHttpError(err)
+	}
+	res := results.Next()
+	if !res {
+		return number, customError.NewGenericHttpError(nil)
+	}
+	err = results.Scan(&number)
+	if err != nil {
+		return number, customError.NewGenericHttpError(nil)
+	}
 
+	return number, nil
+}
+
+func (mysql mysqlUserRepository) GetFollowerCount(user *models.User) (int, customError.Error) {
+	var number int
+	results, err := mysql.Conn.Query("SELECT COUNT(u.id) FROM riptides.user_follow_user as u WHERE u.follower_id = ?", user.ID)
+	defer results.Close()
+	if err != nil {
+		return number, customError.NewGenericHttpError(err)
+	}
+	res := results.Next()
+	if !res {
+		return number, customError.NewGenericHttpError(nil)
+	}
+	err = results.Scan(&number)
+	if err != nil {
+		return number, customError.NewGenericHttpError(nil)
+	}
+
+	return number, nil
+}

@@ -213,3 +213,59 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, following)
 }
+
+func GetFollowingCount(w http.ResponseWriter, r *http.Request)  {
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+	}
+
+	followCount := models.FollowCount{}
+	followCount.Count, customErr = userService.GetFollowingCount(User)
+	if customErr != nil {
+		handleError(w, customErr)
+	}
+
+	respondJSON(w, http.StatusOK, followCount)
+}
+
+func GetFollowersCount(w http.ResponseWriter, r *http.Request)  {
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+	}
+
+	followCount := models.FollowCount{}
+	followCount.Count, customErr = userService.GetFollowerCount(User)
+	if customErr != nil {
+		handleError(w, customErr)
+	}
+
+	respondJSON(w, http.StatusOK, followCount)
+}

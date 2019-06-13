@@ -187,3 +187,11 @@ func (u userService) GetFollowers(currentUser models.User, user models.User, off
 
 	return following, nil
 }
+
+func (u userService) GetFollowingCount(user models.User) (int, customError.Error) {
+	return u.userRepo.GetFollowingCount(&user)
+}
+
+func (u userService) GetFollowerCount(user models.User) (int, customError.Error) {
+	return u.userRepo.GetFollowerCount(&user)
+}

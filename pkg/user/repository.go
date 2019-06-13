@@ -13,4 +13,6 @@ type Repository interface {
 	GetFollowing(user *models.User, offset int, limit int) ([]models.Following, customError.Error)
 	DoesUserFollow(currentUser *models.User, user *models.User) (bool, error)
 	GetFollowers(user *models.User, offset int, limit int) ([]models.Following, customError.Error)
+	GetFollowingCount(user *models.User) (int, customError.Error)
+	GetFollowerCount(user *models.User) (int, customError.Error)
 }
