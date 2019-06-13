@@ -16,4 +16,6 @@ type Service interface {
 	GetCurrentUser(r *http.Request) (models.User, customError.Error)
 	GetMyFollowing(currentUser models.User, offset int, limit int) ([]models.Following, customError.Error)
 	GetFollowing(currentUser models.User, user models.User, offset int, limit int) ([]models.Following, customError.Error)
+	GetMyFollowers(currentUser models.User, offset int, limit int) ([]models.Following, customError.Error)
+	GetFollowers(currentUser models.User, user models.User, offset int, limit int) ([]models.Following, customError.Error)
 }

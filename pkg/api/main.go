@@ -26,6 +26,7 @@ func (a *App) setRouters() {
 	a.Router.HandleFunc("/api/user", CreateUser).Methods("POST")
 	a.Router.HandleFunc("/api/login", Login).Methods("POST")
 	a.AuthRouter.HandleFunc("/user/{username}/following", GetFollowing).Methods("GET")
+	a.AuthRouter.HandleFunc("/user/{username}/followers", GetFollowers).Methods("GET")
 }
 
 func (a *App) Run(host string) {

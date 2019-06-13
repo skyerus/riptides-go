@@ -12,4 +12,5 @@ type Repository interface {
 	Get(user *models.User) customError.Error
 	GetFollowing(user *models.User, offset int, limit int) ([]models.Following, customError.Error)
 	DoesUserFollow(currentUser *models.User, user *models.User) (bool, error)
+	GetFollowers(user *models.User, offset int, limit int) ([]models.Following, customError.Error)
 }

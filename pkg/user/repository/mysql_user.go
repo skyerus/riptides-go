@@ -91,4 +91,25 @@ func (mysql mysqlUserRepository) DoesUserFollow(currentUser *models.User, user *
 	return exists, err
 }
 
+func (mysql mysqlUserRepository) GetFollowers(user *models.User, offset int, limit int) ([]models.Following, customError.Error) {
+	var users []models.Following
+	query := "SELECT user.id, user.username, user.email, user.avatar, user.bio FROM user LEFT JOIN (SELECT following_id, follower_id FROM user_follow_user GROUP BY id ORDER BY date_created DESC) as f ON user.id = f.following_id WHERE f.follower_id = ? LIMIT ?, ?"
+	results, err := mysql.Conn.Query(query, user.ID, offset, limit)
+	if err != nil {
+		return users, customError.NewGenericHttpError(err)
+	}
+	defer results.Close()
+
+	for results.Next() {
+		var u models.Following
+		if err := results.Scan(&u.User.ID, &u.User.Username, &u.User.Email, &u.User.Avatar, &u.User.Bio); err != nil {
+			return users, customError.NewGenericHttpError(err)
+		}
+		u.Following = true
+		users = append(users, u)
+	}
+
+	return users, nil
+}
+
 

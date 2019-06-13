@@ -157,3 +157,59 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, following)
 }
+
+func GetFollowers(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+	offset, err := strconv.Atoi(params.Get("offset"))
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+	limit, err := strconv.Atoi(params.Get("limit"))
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	if CurrentUser.ID == User.ID {
+		following, customErr := userService.GetMyFollowers(CurrentUser, offset, limit)
+		if customErr != nil {
+			respondGenericError(w)
+			return
+		}
+
+		respondJSON(w, http.StatusOK, following)
+		return
+	}
+
+	following, customErr := userService.GetFollowers(CurrentUser, User, offset, limit)
+	if customErr != nil {
+		respondGenericError(w)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, following)
+}
