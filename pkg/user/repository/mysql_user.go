@@ -6,6 +6,7 @@ import (
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/user"
 	"net/http"
+	"time"
 )
 
 type mysqlUserRepository struct {
@@ -148,4 +149,34 @@ func (mysql mysqlUserRepository) GetFollowerCount(user *models.User) (int, custo
 	}
 
 	return number, nil
+}
+
+func (mysql mysqlUserRepository) Follow(currentUser *models.User, user *models.User) customError.Error {
+	stmtIns, err := mysql.Conn.Prepare("INSERT INTO user_follow_user (following_id, follower_id, interest, date_created) VALUES(?, ?, ?, ?)")
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	defer stmtIns.Close()
+
+	_, err = stmtIns.Exec(currentUser.ID, user.ID, 0, time.Now())
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+
+	return nil
+}
+
+func (mysql mysqlUserRepository) Unfollow(currentUser *models.User, user *models.User) customError.Error {
+	stmtIns, err := mysql.Conn.Prepare("DELETE FROM user_follow_user WHERE following_id = ? AND follower_id = ?")
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	defer stmtIns.Close()
+
+	_, err = stmtIns.Exec(currentUser.ID, user.ID)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+
+	return nil
 }

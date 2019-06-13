@@ -269,3 +269,81 @@ func GetFollowersCount(w http.ResponseWriter, r *http.Request)  {
 
 	respondJSON(w, http.StatusOK, followCount)
 }
+
+func Follow(w http.ResponseWriter, r *http.Request) {
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+	}
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	if CurrentUser.ID == User.ID {
+		respondJSON(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	customErr = userService.Follow(CurrentUser, User)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, nil)
+}
+
+func Unfollow(w http.ResponseWriter, r *http.Request) {
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+	}
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	if CurrentUser.ID == User.ID {
+		respondJSON(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	customErr = userService.Unfollow(CurrentUser, User)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, nil)
+}
