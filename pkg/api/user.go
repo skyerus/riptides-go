@@ -5,10 +5,10 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/models"
-	SpotifyRepository "github.com/skyerus/riptides-go/pkg/spotify/repository"
-	SpotifyService "github.com/skyerus/riptides-go/pkg/spotify/service"
-	"github.com/skyerus/riptides-go/pkg/user/repository"
-	"github.com/skyerus/riptides-go/pkg/user/service"
+	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyRepository"
+	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
+	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
+	"github.com/skyerus/riptides-go/pkg/user/UserService"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,7 +19,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request)  {
+func CreateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var user models.User
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -39,8 +39,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	defer db.Close()
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 	customError := userService.Create(user)
 
 	if customError != nil {
@@ -51,7 +51,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request)  {
 	respondJSON(w, http.StatusOK, nil)
 }
 
-func Login(w http.ResponseWriter, r *http.Request)  {
+func Login(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var creds models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&creds)
@@ -67,8 +67,8 @@ func Login(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	defer db.Close()
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	if !userService.Authenticate(creds) {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -126,8 +126,8 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	User, customErr := userService.Get(username)
 	if customErr != nil {
@@ -182,8 +182,8 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	User, customErr := userService.Get(username)
 	if customErr != nil {
@@ -216,7 +216,7 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, following)
 }
 
-func GetFollowingCount(w http.ResponseWriter, r *http.Request)  {
+func GetFollowingCount(w http.ResponseWriter, r *http.Request) {
 	username := mux.Vars(r)["username"]
 
 	db, err := openDb()
@@ -227,8 +227,8 @@ func GetFollowingCount(w http.ResponseWriter, r *http.Request)  {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	User, customErr := userService.Get(username)
 	if customErr != nil {
@@ -246,7 +246,7 @@ func GetFollowingCount(w http.ResponseWriter, r *http.Request)  {
 	respondJSON(w, http.StatusOK, followCount)
 }
 
-func GetFollowersCount(w http.ResponseWriter, r *http.Request)  {
+func GetFollowersCount(w http.ResponseWriter, r *http.Request) {
 	username := mux.Vars(r)["username"]
 
 	db, err := openDb()
@@ -257,8 +257,8 @@ func GetFollowersCount(w http.ResponseWriter, r *http.Request)  {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	User, customErr := userService.Get(username)
 	if customErr != nil {
@@ -287,8 +287,8 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	User, customErr := userService.Get(username)
 	if customErr != nil {
@@ -327,8 +327,8 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	User, customErr := userService.Get(username)
 	if customErr != nil {
@@ -367,8 +367,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	User, customErr := userService.Get(username)
 	if customErr != nil {
@@ -393,7 +393,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, follow)
 }
 
-func GetMyConfig(w http.ResponseWriter, r *http.Request)  {
+func GetMyConfig(w http.ResponseWriter, r *http.Request) {
 	db, err := openDb()
 	if err != nil {
 		log.Println(err)
@@ -402,8 +402,8 @@ func GetMyConfig(w http.ResponseWriter, r *http.Request)  {
 	}
 	defer db.Close()
 
-	userRepo := repository.NewMysqlUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
 
 	CurrentUser, customErr := userService.GetCurrentUser(r)
 	if customErr != nil {

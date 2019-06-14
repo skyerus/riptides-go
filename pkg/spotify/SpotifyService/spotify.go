@@ -1,4 +1,4 @@
-package service
+package SpotifyService
 
 import (
 	"github.com/skyerus/riptides-go/pkg/customError"

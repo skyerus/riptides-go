@@ -1,4 +1,4 @@
-package service
+package UserService
 
 import (
 	"github.com/dgrijalva/jwt-go"

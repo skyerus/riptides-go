@@ -1,4 +1,4 @@
-package repository
+package SpotifyRepository
 
 import (
 	"database/sql"
