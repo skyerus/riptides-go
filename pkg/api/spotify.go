@@ -25,3 +25,7 @@ func RedirectSpotifyAuthorize(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, req.URL.String(), http.StatusSeeOther)
 }
+
+func AuthorizeSpotify(w http.ResponseWriter, r *http.Request) {
+	respondJSON(w, http.StatusOK, nil)
+}

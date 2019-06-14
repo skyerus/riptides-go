@@ -16,6 +16,7 @@ type App struct {
 
 func (a *App) Initialize() {
 	a.Router = mux.NewRouter()
+	a.Router.Use(Cors)
 	a.AuthRouter = a.Router.PathPrefix("/api/auth").Subrouter()
 	a.AuthRouter.Use(Auth)
 	a.setRouters()
@@ -24,7 +25,7 @@ func (a *App) Initialize() {
 func (a *App) setRouters() {
 	a.Router.HandleFunc("/healthcheck", HealthCheck).Methods("GET")
 	a.Router.HandleFunc("/api/user", CreateUser).Methods("POST")
-	a.Router.HandleFunc("/api/login", Login).Methods("POST")
+	a.Router.HandleFunc("/api/login", Login).Methods("POST", "OPTIONS")
 	a.Router.HandleFunc("/api/spotify/authorize", RedirectSpotifyAuthorize).Methods("GET")
 	a.AuthRouter.HandleFunc("/user/{username}/following", GetFollowing).Methods("GET")
 	a.AuthRouter.HandleFunc("/user/{username}/followers", GetFollowers).Methods("GET")
@@ -34,6 +35,7 @@ func (a *App) setRouters() {
 	a.AuthRouter.HandleFunc("/user/unfollow/{username}", Unfollow).Methods("DELETE")
 	a.AuthRouter.HandleFunc("/user/{username}", GetUser).Methods("GET")
 	a.AuthRouter.HandleFunc("/me/config", GetMyConfig).Methods("GET")
+	a.AuthRouter.HandleFunc("/spotify/authorize", AuthorizeSpotify).Methods("POST", "OPTIONS")
 }
 
 func (a *App) Run(host string) {
