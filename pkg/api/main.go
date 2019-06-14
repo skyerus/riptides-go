@@ -32,6 +32,7 @@ func (a *App) setRouters() {
 	a.AuthRouter.HandleFunc("/user/follow/{username}", Follow).Methods("PUT")
 	a.AuthRouter.HandleFunc("/user/unfollow/{username}", Unfollow).Methods("DELETE")
 	a.AuthRouter.HandleFunc("/user/{username}", GetUser).Methods("GET")
+	a.AuthRouter.HandleFunc("/me/config", GetMyConfig).Methods("GET")
 }
 
 func (a *App) Run(host string) {

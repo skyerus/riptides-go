@@ -5,6 +5,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/models"
+	SpotifyRepository "github.com/skyerus/riptides-go/pkg/spotify/repository"
+	SpotifyService "github.com/skyerus/riptides-go/pkg/spotify/service"
 	"github.com/skyerus/riptides-go/pkg/user/repository"
 	"github.com/skyerus/riptides-go/pkg/user/service"
 	"io/ioutil"
@@ -389,4 +391,36 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, follow)
+}
+
+func GetMyConfig(w http.ResponseWriter, r *http.Request)  {
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	spotifyRepo := SpotifyRepository.NewMysqlSpotifyRepository(db)
+	spotifyService := SpotifyService.NewSpotifyService(spotifyRepo)
+
+	userConfig := models.UserConfig{}
+	userConfig.User = CurrentUser
+	userConfig.Config.Spotify, customErr = spotifyService.CredentialsExist(&CurrentUser)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, userConfig)
 }

@@ -26,6 +26,15 @@ type FollowCount struct {
 	Count int `json:"count"`
 }
 
+type Config struct {
+	Spotify bool `json:"spotify"`
+}
+
+type UserConfig struct {
+	User `json:"user"`
+	Config `json:"config"`
+}
+
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims
