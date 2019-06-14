@@ -22,4 +22,5 @@ type Service interface {
 	GetFollowerCount(user models.User) (int, customError.Error)
 	Follow(currentUser models.User, user models.User) customError.Error
 	Unfollow(currentUser models.User, user models.User) customError.Error
+	DoesUserFollow(currentUser *models.User, user *models.User) (bool, customError.Error)
 }

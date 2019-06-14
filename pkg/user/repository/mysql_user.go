@@ -85,11 +85,13 @@ func (mysql mysqlUserRepository) GetFollowing(user *models.User, offset int, lim
 	return users, nil
 }
 
-func (mysql mysqlUserRepository) DoesUserFollow(currentUser *models.User, user *models.User) (bool, error) {
+func (mysql mysqlUserRepository) DoesUserFollow(currentUser *models.User, user *models.User) (bool, customError.Error) {
 	var exists bool
 	err := mysql.Conn.QueryRow("SELECT EXISTS(SELECT 1 FROM user_follow_user WHERE following_id = ? AND follower_id = ?)", currentUser.ID, user.ID).Scan(&exists)
-
-	return exists, err
+	if err != nil {
+		return exists, customError.NewGenericHttpError(err)
+	}
+	return exists, nil
 }
 
 func (mysql mysqlUserRepository) GetFollowers(user *models.User, offset int, limit int) ([]models.Following, customError.Error) {

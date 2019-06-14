@@ -231,12 +231,14 @@ func GetFollowingCount(w http.ResponseWriter, r *http.Request)  {
 	User, customErr := userService.Get(username)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
 	}
 
 	followCount := models.FollowCount{}
 	followCount.Count, customErr = userService.GetFollowingCount(User)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
 	}
 
 	respondJSON(w, http.StatusOK, followCount)
@@ -259,12 +261,14 @@ func GetFollowersCount(w http.ResponseWriter, r *http.Request)  {
 	User, customErr := userService.Get(username)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
 	}
 
 	followCount := models.FollowCount{}
 	followCount.Count, customErr = userService.GetFollowerCount(User)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
 	}
 
 	respondJSON(w, http.StatusOK, followCount)
@@ -287,6 +291,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	User, customErr := userService.Get(username)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
 	}
 
 	CurrentUser, customErr := userService.GetCurrentUser(r)
@@ -326,6 +331,7 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
 	User, customErr := userService.Get(username)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
 	}
 
 	CurrentUser, customErr := userService.GetCurrentUser(r)
@@ -346,4 +352,41 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, nil)
+}
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := repository.NewMysqlUserRepository(db)
+	userService := service.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	follow := models.Following{}
+	follow.User = User
+	follow.Following, customErr = userService.DoesUserFollow(&CurrentUser, &User)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, follow)
 }

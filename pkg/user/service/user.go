@@ -153,9 +153,9 @@ func (u userService) GetFollowing(currentUser models.User, user models.User, off
 	}
 
 	for i, follow := range following {
-		exists, err := u.userRepo.DoesUserFollow(&currentUser, &follow.User)
-		if err != nil {
-			return following, customError.NewGenericHttpError(err)
+		exists, customErr := u.userRepo.DoesUserFollow(&currentUser, &follow.User)
+		if customErr != nil {
+			return following, customErr
 		}
 		if !exists {
 			following[i].Following = false
@@ -176,9 +176,9 @@ func (u userService) GetFollowers(currentUser models.User, user models.User, off
 	}
 
 	for i, follow := range following {
-		exists, err := u.userRepo.DoesUserFollow(&currentUser, &follow.User)
-		if err != nil {
-			return following, customError.NewGenericHttpError(err)
+		exists, customErr := u.userRepo.DoesUserFollow(&currentUser, &follow.User)
+		if customErr != nil {
+			return following, customErr
 		}
 		if !exists {
 			following[i].Following = false
@@ -202,4 +202,8 @@ func (u userService) Follow(currentUser models.User, user models.User) customErr
 
 func (u userService) Unfollow(currentUser models.User, user models.User) customError.Error {
 	return u.userRepo.Unfollow(&currentUser, &user)
+}
+
+func (u userService) DoesUserFollow(currentUser *models.User, user *models.User) (bool, customError.Error) {
+	return u.userRepo.DoesUserFollow(currentUser, user)
 }
