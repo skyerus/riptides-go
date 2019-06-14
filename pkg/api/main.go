@@ -25,6 +25,7 @@ func (a *App) setRouters() {
 	a.Router.HandleFunc("/healthcheck", HealthCheck).Methods("GET")
 	a.Router.HandleFunc("/api/user", CreateUser).Methods("POST")
 	a.Router.HandleFunc("/api/login", Login).Methods("POST")
+	a.Router.HandleFunc("/api/spotify/authorize", RedirectSpotifyAuthorize).Methods("GET")
 	a.AuthRouter.HandleFunc("/user/{username}/following", GetFollowing).Methods("GET")
 	a.AuthRouter.HandleFunc("/user/{username}/followers", GetFollowers).Methods("GET")
 	a.AuthRouter.HandleFunc("/user/{username}/following/count", GetFollowingCount).Methods("GET")
