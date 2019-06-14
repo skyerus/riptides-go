@@ -22,7 +22,7 @@ func Auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if len(token) < 7 {
-			respondBadRequest(w)
+			respondUnauthorizedRequest(w)
 			return
 		}
 		token = token[7:]
