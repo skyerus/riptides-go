@@ -13,7 +13,7 @@ type Handler interface {
 }
 
 type RequestHandler interface {
-	SendRequest(request *http.Request, user *models.User, authorized bool) (*http.Response, customError.Error)
+	SendRequest(request *http.Request, user *models.User, authorized bool, allowRecursion bool) (*http.Response, customError.Error)
 	sendRefreshRequest(client *http.Client, user *models.User) customError.Error
 }
 
@@ -25,7 +25,7 @@ func NewRequestHandler(handler Handler) RequestHandler {
 	return &requestHandler{handler}
 }
 
-func (handler requestHandler) SendRequest(request *http.Request, user *models.User, authorized bool) (*http.Response, customError.Error) {
+func (handler requestHandler) SendRequest(request *http.Request, user *models.User, authorized bool, allowRecursion bool) (*http.Response, customError.Error) {
 	client := &http.Client{}
 
 	if authorized {
@@ -37,12 +37,12 @@ func (handler requestHandler) SendRequest(request *http.Request, user *models.Us
 		return response, customError.NewGenericHttpError(err)
 	}
 	if response.StatusCode == http.StatusUnauthorized {
-		if authorized {
+		if authorized && allowRecursion {
 			customErr := handler.sendRefreshRequest(client, user)
 			if customErr != nil {
 				return response, customErr
 			}
-			return handler.SendRequest(request, user, false)
+			return handler.SendRequest(request, user, true, false)
 		}
 		return response, customError.NewUnauthorizedError(nil)
 	}
