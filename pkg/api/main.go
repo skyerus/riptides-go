@@ -49,5 +49,10 @@ func (a *App) Run(host string) {
 }
 
 func openDb() (*sql.DB, error) {
-	return sql.Open("mysql", os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ")/" + os.Getenv("DB_NAME"))
+	db, err := sql.Open("mysql", os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@tcp(" + os.Getenv("DB_HOST") + ")/" + os.Getenv("DB_NAME"))
+	if err != nil {
+		log.Println(err)
+		return db, err
+	}
+	return db, nil
 }

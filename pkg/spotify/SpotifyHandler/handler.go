@@ -32,10 +32,17 @@ func NewSpotifyHandler(spotifyRepo spotify.Repository) handler.Handler {
 
 func (handler spotifyHandler) SaveCredentials(response *http.Response, user *models.User) customError.Error {
 	var creds Credentials
-	defer response.Body.Close()
 	err := json.NewDecoder(response.Body).Decode(creds)
 	if err != nil {
 		return customError.NewGenericHttpError(err)
+	}
+	credsExist, customErr := handler.spotifyRepo.CredentialsExist(user)
+	if customErr != nil {
+		return customErr
+	}
+
+	if credsExist {
+		return handler.spotifyRepo.UpdateCredentials(creds, user)
 	}
 	return handler.spotifyRepo.SaveCredentials(creds, user)
 }

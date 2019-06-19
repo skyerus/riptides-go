@@ -34,7 +34,6 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -62,7 +61,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -120,7 +118,6 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -176,7 +173,6 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -221,7 +217,6 @@ func GetFollowingCount(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -251,7 +246,6 @@ func GetFollowersCount(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -281,7 +275,6 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -321,7 +314,6 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -361,7 +353,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}
@@ -396,7 +387,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 func GetMyConfig(w http.ResponseWriter, r *http.Request) {
 	db, err := openDb()
 	if err != nil {
-		log.Println(err)
 		respondGenericError(w)
 		return
 	}

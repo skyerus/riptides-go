@@ -56,6 +56,7 @@ func (handler requestHandler) sendRefreshRequest(client *http.Client, user *mode
 		return customErr
 	}
 	response, err := client.Do(request)
+	defer request.Body.Close()
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}

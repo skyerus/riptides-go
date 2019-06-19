@@ -1,6 +1,11 @@
 package api
 
 import (
+	"encoding/json"
+	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyRepository"
+	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
+	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
+	"github.com/skyerus/riptides-go/pkg/user/UserService"
 	"log"
 	"net/http"
 	"net/url"
@@ -8,6 +13,10 @@ import (
 )
 
 const AuthorizeUrl = "https://accounts.spotify.com/authorize"
+
+type SpotifyAuthorization struct {
+	Code string `json:"code"`
+}
 
 func RedirectSpotifyAuthorize(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest("GET", AuthorizeUrl, nil)
@@ -27,5 +36,37 @@ func RedirectSpotifyAuthorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func AuthorizeSpotify(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var auth SpotifyAuthorization
+	err := json.NewDecoder(r.Body).Decode(&auth)
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	spotifyRepo := SpotifyRepository.NewMysqlSpotifyRepository(db)
+	userService := UserService.NewUserService(userRepo)
+	spotifyService := SpotifyService.NewSpotifyService(spotifyRepo)
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	customErr = spotifyService.AuthorizeUser(&CurrentUser, auth)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
 	respondJSON(w, http.StatusOK, nil)
 }

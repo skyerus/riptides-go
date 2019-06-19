@@ -35,25 +35,6 @@ func (mysql mysqlSpotifyRepository) GetCredentials(user *models.User) (models.Sp
 }
 
 func (mysql mysqlSpotifyRepository) SaveCredentials(creds SpotifyHandler.Credentials, user *models.User) customError.Error {
-	credsExist, customErr := mysql.CredentialsExist(user)
-	if customErr != nil {
-		return customErr
-	}
-
-	if credsExist {
-		stmtIns, err := mysql.Conn.Prepare("UPDATE spotify_credentials SET access_token = ? AND refresh_token = ? WHERE user_id = ?")
-		if err != nil {
-			return customError.NewGenericHttpError(err)
-		}
-		defer stmtIns.Close()
-
-		_, err = stmtIns.Exec(creds.AccessToken, creds.RefreshToken, user.ID)
-		if err != nil {
-			return customError.NewGenericHttpError(err)
-		}
-		return nil
-	}
-
 	stmtIns, err := mysql.Conn.Prepare("INSERT INTO spotify_credentials (user_id, access_token, refresh_token) VALUES(?, ?, ?)")
 	if err != nil {
 		return customError.NewGenericHttpError(err)
@@ -65,5 +46,19 @@ func (mysql mysqlSpotifyRepository) SaveCredentials(creds SpotifyHandler.Credent
 		return customError.NewGenericHttpError(err)
 	}
 
+	return nil
+}
+
+func (mysql mysqlSpotifyRepository) UpdateCredentials(creds SpotifyHandler.Credentials, user *models.User) customError.Error {
+	stmtIns, err := mysql.Conn.Prepare("UPDATE spotify_credentials SET access_token = ? AND refresh_token = ? WHERE user_id = ?")
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	defer stmtIns.Close()
+
+	_, err = stmtIns.Exec(creds.AccessToken, creds.RefreshToken, user.ID)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
 	return nil
 }
