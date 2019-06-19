@@ -23,7 +23,7 @@ func NewGenericHttpError(err error) Error {
 }
 
 func NewUnauthorizedError(err error) Error {
-	return &HttpError{http.StatusUnauthorized, nil, err}
+	return &HttpError{http.StatusUnauthorized, "", err}
 }
 
 func (e *HttpError) OriginalError() error {

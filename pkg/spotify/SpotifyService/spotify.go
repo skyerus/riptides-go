@@ -3,7 +3,6 @@ package SpotifyService
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/skyerus/riptides-go/pkg/api"
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/handler"
 	"github.com/skyerus/riptides-go/pkg/models"
@@ -34,7 +33,7 @@ func (s spotifyService) CredentialsExist(user *models.User) (bool, customError.E
 	return s.spotifyRepo.CredentialsExist(user)
 }
 
-func (s spotifyService) AuthorizeUser(user *models.User, authorization api.SpotifyAuthorization) customError.Error {
+func (s spotifyService) AuthorizeUser(user *models.User, authorization models.SpotifyAuthorization) customError.Error {
 	authBody := authorizationBody{"authorization_code", authorization.Code, os.Getenv("SPOTIFY_REDIRECT_URI")}
 	spotifyHandler := SpotifyHandler.NewSpotifyHandler(s.spotifyRepo)
 	Handler := handler.NewRequestHandler(spotifyHandler)

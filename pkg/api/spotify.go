@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyRepository"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
@@ -13,10 +14,6 @@ import (
 )
 
 const AuthorizeUrl = "https://accounts.spotify.com/authorize"
-
-type SpotifyAuthorization struct {
-	Code string `json:"code"`
-}
 
 func RedirectSpotifyAuthorize(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest("GET", AuthorizeUrl, nil)
@@ -37,7 +34,7 @@ func RedirectSpotifyAuthorize(w http.ResponseWriter, r *http.Request) {
 
 func AuthorizeSpotify(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	var auth SpotifyAuthorization
+	var auth models.SpotifyAuthorization
 	err := json.NewDecoder(r.Body).Decode(&auth)
 	if err != nil {
 		respondBadRequest(w)

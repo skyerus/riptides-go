@@ -17,11 +17,6 @@ type refreshBody struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-type Credentials struct {
-	AccessToken string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
 type spotifyHandler struct {
 	spotifyRepo spotify.Repository
 }
@@ -31,7 +26,7 @@ func NewSpotifyHandler(spotifyRepo spotify.Repository) handler.Handler {
 }
 
 func (handler spotifyHandler) SaveCredentials(response *http.Response, user *models.User) customError.Error {
-	var creds Credentials
+	var creds models.SpotifyCredentials
 	err := json.NewDecoder(response.Body).Decode(creds)
 	if err != nil {
 		return customError.NewGenericHttpError(err)

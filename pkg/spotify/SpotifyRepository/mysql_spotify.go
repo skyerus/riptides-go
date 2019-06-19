@@ -5,7 +5,6 @@ import (
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/spotify"
-	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyHandler"
 )
 
 type mysqlSpotifyRepository struct {
@@ -34,7 +33,7 @@ func (mysql mysqlSpotifyRepository) GetCredentials(user *models.User) (models.Sp
 	return creds, nil
 }
 
-func (mysql mysqlSpotifyRepository) SaveCredentials(creds SpotifyHandler.Credentials, user *models.User) customError.Error {
+func (mysql mysqlSpotifyRepository) SaveCredentials(creds models.SpotifyCredentials, user *models.User) customError.Error {
 	stmtIns, err := mysql.Conn.Prepare("INSERT INTO spotify_credentials (user_id, access_token, refresh_token) VALUES(?, ?, ?)")
 	if err != nil {
 		return customError.NewGenericHttpError(err)
@@ -49,7 +48,7 @@ func (mysql mysqlSpotifyRepository) SaveCredentials(creds SpotifyHandler.Credent
 	return nil
 }
 
-func (mysql mysqlSpotifyRepository) UpdateCredentials(creds SpotifyHandler.Credentials, user *models.User) customError.Error {
+func (mysql mysqlSpotifyRepository) UpdateCredentials(creds models.SpotifyCredentials, user *models.User) customError.Error {
 	stmtIns, err := mysql.Conn.Prepare("UPDATE spotify_credentials SET access_token = ? AND refresh_token = ? WHERE user_id = ?")
 	if err != nil {
 		return customError.NewGenericHttpError(err)
