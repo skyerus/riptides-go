@@ -3,6 +3,8 @@ package handler
 import (
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -45,6 +47,16 @@ func (handler requestHandler) SendRequest(request *http.Request, user *models.Us
 			return handler.SendRequest(request, user, true, false)
 		}
 		return response, customError.NewUnauthorizedError(nil)
+	}
+
+	if response.StatusCode >= 300 {
+		bodyBytes, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return response, customError.NewGenericHttpError(err)
+		}
+		bodyString := string(bodyBytes)
+		log.Println(bodyString)
+		return response, customError.NewGenericHttpError(nil)
 	}
 
 	return response, nil

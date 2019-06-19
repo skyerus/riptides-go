@@ -72,27 +72,10 @@ func (handler spotifyHandler) GetRefreshRequest(user *models.User) (*http.Reques
 		return nil, customError.NewGenericHttpError(err)
 	}
 
-	clientId := []byte(os.Getenv("SPOTIFY_CLIENT_ID"))
-	clientSecret := []byte(os.Getenv("SPOTIFY_CLIENT_SECRET"))
-	encoder := base64.NewEncoder(base64.StdEncoding, os.Stdout)
-	_, err = encoder.Write(clientId)
-	if err != nil {
-		return nil, customError.NewGenericHttpError(err)
-	}
-	err = encoder.Close()
-	if err != nil {
-		return nil, customError.NewGenericHttpError(err)
-	}
-	_, err = encoder.Write(clientSecret)
-	if err != nil {
-		return nil, customError.NewGenericHttpError(err)
-	}
-	err = encoder.Close()
-	if err != nil {
-		return nil, customError.NewGenericHttpError(err)
-	}
+	clientData := os.Getenv("SPOTIFY_CLIENT_ID") + ":" + os.Getenv("SPOTIFY_CLIENT_SECRET")
+	clientBase64 := base64.StdEncoding.EncodeToString([]byte(clientData))
 
-	request.Header.Set("Authorization", "Basic " + string(clientId) + ":" + string(clientSecret))
+	request.Header.Set("Authorization", "Basic " + clientBase64)
 
 	return request, nil
 }
