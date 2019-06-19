@@ -22,6 +22,10 @@ func NewGenericHttpError(err error) Error {
 	return &HttpError{http.StatusInternalServerError, "Oops, something went wrong. Please try again later.", err}
 }
 
+func NewUnauthorizedError(err error) Error {
+	return &HttpError{http.StatusUnauthorized, nil, err}
+}
+
 func (e *HttpError) OriginalError() error {
 	return e.error
 }
