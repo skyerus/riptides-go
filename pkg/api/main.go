@@ -36,6 +36,7 @@ func (a *App) setRouters() {
 	a.AuthRouter.HandleFunc("/user/{username}", GetUser).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/me/config", GetMyConfig).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/spotify/authorize", AuthorizeSpotify).Methods("POST", "OPTIONS")
+	a.AuthRouter.HandleFunc("/spotify/v1/me/player/play", Play).Methods("PUT", "OPTIONS")
 }
 
 func (a *App) Run(host string) {

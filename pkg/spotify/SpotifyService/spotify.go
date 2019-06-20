@@ -1,7 +1,9 @@
 package SpotifyService
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/handler"
 	"github.com/skyerus/riptides-go/pkg/models"
@@ -15,6 +17,7 @@ import (
 
 const SpotifyBaseUrl = "https://api.spotify.com/v1"
 const SpotifyAuthorizeUrl = "https://accounts.spotify.com/api/token"
+const SpotifyPlayEndpoint = "/me/player/play"
 
 type spotifyService struct {
 	spotifyRepo spotify.Repository
@@ -54,4 +57,24 @@ func (s spotifyService) AuthorizeUser(user *models.User, authorization models.Sp
 	}
 
 	return spotifyHandler.SaveCredentials(response, user)
+}
+
+func (s spotifyService) Play(user *models.User, spotifyPlay models.SpotifyPlay) customError.Error {
+	spotifyHandler := SpotifyHandler.NewSpotifyHandler(s.spotifyRepo)
+	Handler := handler.NewRequestHandler(spotifyHandler)
+
+	bodyBytes, err := json.Marshal(spotifyPlay)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	b := bytes.NewBuffer(bodyBytes)
+
+	request, err := http.NewRequest("PUT", SpotifyBaseUrl + SpotifyPlayEndpoint, b)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+
+	_, customErr := Handler.SendRequest(request, user, true, true)
+
+	return customErr
 }

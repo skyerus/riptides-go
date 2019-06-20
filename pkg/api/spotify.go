@@ -67,3 +67,44 @@ func AuthorizeSpotify(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, nil)
 }
+
+func Play(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var payload models.Play
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	spotifyRepo := SpotifyRepository.NewMysqlSpotifyRepository(db)
+	userService := UserService.NewUserService(userRepo)
+	spotifyService := SpotifyService.NewSpotifyService(spotifyRepo)
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	var spotifyPlay models.SpotifyPlay
+	var URIs [1]string
+	URIs[0] = payload.URI
+	spotifyPlay.URIs = URIs
+
+	customErr = spotifyService.Play(&CurrentUser, spotifyPlay)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, nil)
+}

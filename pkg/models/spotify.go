@@ -8,3 +8,11 @@ type SpotifyCredentials struct {
 type SpotifyAuthorization struct {
 	Code string `json:"code"`
 }
+
+type Play struct {
+	URI string `json:"uri"`
+}
+
+type SpotifyPlay struct {
+	URIs [1]string `json:"uris"`
+}
