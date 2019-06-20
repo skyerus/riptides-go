@@ -108,3 +108,32 @@ func Play(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, nil)
 }
+
+func Search(w http.ResponseWriter, r *http.Request)  {
+	rawQuery := r.URL.RawQuery
+
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	spotifyRepo := SpotifyRepository.NewMysqlSpotifyRepository(db)
+	userService := UserService.NewUserService(userRepo)
+	spotifyService := SpotifyService.NewSpotifyService(spotifyRepo)
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	simpleSpotifySearch, customErr := spotifyService.Search(&CurrentUser, rawQuery)
+	if customErr != nil {
+		handleError(w, customErr)
+	}
+
+	respondJSON(w, http.StatusOK, simpleSpotifySearch)
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/spotify"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyHandler"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,6 +19,7 @@ import (
 const SpotifyBaseUrl = "https://api.spotify.com/v1"
 const SpotifyAuthorizeUrl = "https://accounts.spotify.com/api/token"
 const SpotifyPlayEndpoint = "/me/player/play"
+const SpotifySearchEndpoint = "/search"
 
 type spotifyService struct {
 	spotifyRepo spotify.Repository
@@ -77,4 +79,45 @@ func (s spotifyService) Play(user *models.User, spotifyPlay models.SpotifyPlay) 
 	_, customErr := Handler.SendRequest(request, user, true, true)
 
 	return customErr
+}
+
+func (s spotifyService) Search(user *models.User, query string) (models.SpotifySearchSimple, customError.Error) {
+	var simpleSearchResponse models.SpotifySearchSimple
+	spotifyHandler := SpotifyHandler.NewSpotifyHandler(s.spotifyRepo)
+	Handler := handler.NewRequestHandler(spotifyHandler)
+
+	request, err := http.NewRequest("GET", SpotifyBaseUrl + SpotifySearchEndpoint + "?" + query, nil)
+	if err != nil {
+		return simpleSearchResponse, customError.NewGenericHttpError(err)
+	}
+
+	response, customErr := Handler.SendRequest(request, user, true, true)
+	if customErr != nil {
+		return simpleSearchResponse, customErr
+	}
+	defer response.Body.Close()
+
+	var spotifySearch models.SpotifySearch
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return simpleSearchResponse, customError.NewGenericHttpError(err)
+	}
+	err = json.Unmarshal(body, &spotifySearch)
+	if err != nil {
+		return simpleSearchResponse, customError.NewGenericHttpError(err)
+	}
+
+	if len(spotifySearch.Tracks.Items) < 1 {
+		return simpleSearchResponse, customError.NewHttpError(http.StatusNotFound, "No song found", nil)
+	}
+	simpleSearchResponse.URI = spotifySearch.Tracks.Items[0].URI
+	simpleSearchResponse.Artist = spotifySearch.Tracks.Items[0].Artists[0].Name
+	simpleSearchResponse.Name = spotifySearch.Tracks.Items[0].Name
+	simpleSearchResponse.DurationMs = spotifySearch.Tracks.Items[0].DurationMs
+	if len(spotifySearch.Tracks.Items[0].Album.Images) < 3 {
+		return simpleSearchResponse, customError.NewHttpError(http.StatusNotFound, "No album cover found", nil)
+	}
+	simpleSearchResponse.Image = spotifySearch.Tracks.Items[0].Album.Images[2]
+
+	return simpleSearchResponse, nil
 }
