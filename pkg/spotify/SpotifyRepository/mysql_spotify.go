@@ -49,7 +49,7 @@ func (mysql mysqlSpotifyRepository) SaveCredentials(creds models.SpotifyCredenti
 }
 
 func (mysql mysqlSpotifyRepository) UpdateCredentials(creds models.SpotifyCredentials, user *models.User) customError.Error {
-	stmtIns, err := mysql.Conn.Prepare("UPDATE spotify_credentials SET access_token = ? AND refresh_token = ? WHERE user_id = ?")
+	stmtIns, err := mysql.Conn.Prepare("UPDATE spotify_credentials SET access_token = ?, refresh_token = ? WHERE user_id = ?")
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}

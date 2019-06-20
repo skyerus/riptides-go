@@ -1,7 +1,6 @@
 package SpotifyHandler
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"github.com/skyerus/riptides-go/pkg/customError"
@@ -9,13 +8,10 @@ import (
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/spotify"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 )
-
-type refreshBody struct {
-	GrantType string `json:"grant_type"`
-	RefreshToken string `json:"refresh_token"`
-}
 
 type spotifyHandler struct {
 	spotifyRepo spotify.Repository
@@ -27,7 +23,7 @@ func NewSpotifyHandler(spotifyRepo spotify.Repository) handler.Handler {
 
 func (handler spotifyHandler) SaveCredentials(response *http.Response, user *models.User) customError.Error {
 	var creds models.SpotifyCredentials
-	err := json.NewDecoder(response.Body).Decode(creds)
+	err := json.NewDecoder(response.Body).Decode(&creds)
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}
@@ -53,21 +49,16 @@ func (handler spotifyHandler) HandleAuthorizedRequest(r *http.Request, user *mod
 }
 
 func (handler spotifyHandler) GetRefreshRequest(user *models.User) (*http.Request, customError.Error) {
-	var refreshBody refreshBody
-	refreshBody.GrantType = "refresh_token"
-
 	creds, customErr := handler.spotifyRepo.GetCredentials(user)
 	if customErr != nil {
 		return nil, customErr
 	}
-	refreshBody.RefreshToken = creds.RefreshToken
 
-	bodyBytes, err := json.Marshal(refreshBody)
-	if err != nil {
-		return nil, customError.NewGenericHttpError(err)
-	}
-	b := bytes.NewBuffer(bodyBytes)
-	request, err := http.NewRequest("POST", "https://accounts.spotify.com/api/token", b)
+	body := url.Values{}
+	body.Add("grant_type", "refresh_token")
+	body.Add("refresh_token", creds.RefreshToken)
+
+	request, err := http.NewRequest("POST", "https://accounts.spotify.com/api/token", strings.NewReader(body.Encode()))
 	if err != nil {
 		return nil, customError.NewGenericHttpError(err)
 	}
@@ -75,7 +66,8 @@ func (handler spotifyHandler) GetRefreshRequest(user *models.User) (*http.Reques
 	clientData := os.Getenv("SPOTIFY_CLIENT_ID") + ":" + os.Getenv("SPOTIFY_CLIENT_SECRET")
 	clientBase64 := base64.StdEncoding.EncodeToString([]byte(clientData))
 
-	request.Header.Set("Authorization", "Basic " + clientBase64)
+	request.Header.Add("Authorization", "Basic " + clientBase64)
+	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	return request, nil
 }
