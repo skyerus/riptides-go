@@ -5,6 +5,7 @@ import (
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/tide"
+	"time"
 )
 
 type mysqlTideRepository struct {
@@ -22,10 +23,16 @@ func (mysql mysqlTideRepository) CreateTide(user *models.User, tide *models.Tide
 	}
 	defer stmtIns.Close()
 
-	_, err = stmtIns.Exec(user.ID, tide.Name, tide.DateCreated, tide.About)
+	res, err := stmtIns.Exec(user.ID, tide.Name, time.Now(), tide.About)
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}
+
+	id, err := res.LastInsertId()
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	tide.ID = int(id)
 
 	return nil
 }
