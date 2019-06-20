@@ -133,6 +133,7 @@ func Search(w http.ResponseWriter, r *http.Request)  {
 	simpleSpotifySearch, customErr := spotifyService.Search(&CurrentUser, rawQuery)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
 	}
 
 	respondJSON(w, http.StatusOK, simpleSpotifySearch)
