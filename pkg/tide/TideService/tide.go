@@ -20,15 +20,15 @@ func (t tideService) CreateTide(user *models.User, tide *models.Tide) customErro
 		return customErr
 	}
 
-	for _, genreId := range tide.Genres {
-		customErr = t.tideRepo.CreateTideGenre(tide, &models.Genre{ID: genreId})
+	for _, genre := range tide.Genres {
+		customErr = t.tideRepo.CreateTideGenre(tide, &genre)
 		if customErr != nil {
 			return customErr
 		}
 	}
 
-	for _, tagName := range tide.Tags {
-		tag, exists := t.tideRepo.GetTag(tagName)
+	for _, tag := range tide.Tags {
+		exists := t.tideRepo.GetTag(&tag)
 		if !exists {
 			customErr = t.tideRepo.CreateTag(&tag)
 			if customErr != nil {

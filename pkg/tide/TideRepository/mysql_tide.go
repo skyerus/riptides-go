@@ -52,14 +52,12 @@ func (mysql mysqlTideRepository) CreateTideGenre(tide *models.Tide, genre *model
 	return nil
 }
 
-func (mysql mysqlTideRepository) GetTag(name string) (Tag models.Tag, exists bool) {
-	var tag models.Tag
-	tag.Name = name
-	err := mysql.Conn.QueryRow("SELECT id FROM tag WHERE name = ?", name).Scan(&tag.ID)
+func (mysql mysqlTideRepository) GetTag(tag *models.Tag) bool {
+	err := mysql.Conn.QueryRow("SELECT id FROM tag WHERE name = ?", tag.Name).Scan(&tag.ID)
 	if err != nil {
-		return tag, false
+		return false
 	}
-	return tag, true
+	return true
 }
 
 func (mysql mysqlTideRepository) CreateTag(tag *models.Tag) customError.Error {
