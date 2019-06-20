@@ -95,3 +95,22 @@ func (mysql mysqlTideRepository) CreateTideTag(tide *models.Tide, tag *models.Ta
 	return nil
 }
 
+func (mysql mysqlTideRepository) GetGenres() ([]models.Genre, customError.Error) {
+	var genres []models.Genre
+	results, err := mysql.Conn.Query("SELECT * FROM genre")
+	if err != nil {
+		return genres, customError.NewGenericHttpError(err)
+	}
+	defer results.Close()
+
+	for results.Next() {
+		var genre models.Genre
+		err = results.Scan(&genre.ID, &genre.Name)
+		if err != nil {
+			return genres, customError.NewGenericHttpError(err)
+		}
+		genres = append(genres, genre)
+	}
+
+	return genres, nil
+}

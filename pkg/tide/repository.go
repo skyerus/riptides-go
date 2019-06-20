@@ -11,4 +11,5 @@ type Repository interface {
 	GetTag(tag *models.Tag) bool
 	CreateTag(tag *models.Tag) customError.Error
 	CreateTideTag(tide *models.Tide, tag *models.Tag) customError.Error
+	GetGenres() ([]models.Genre, customError.Error)
 }

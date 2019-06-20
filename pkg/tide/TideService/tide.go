@@ -43,3 +43,7 @@ func (t tideService) CreateTide(user *models.User, tide *models.Tide) customErro
 
 	return nil
 }
+
+func (t tideService) GetGenres() ([]models.Genre, customError.Error) {
+	return t.tideRepo.GetGenres()
+}

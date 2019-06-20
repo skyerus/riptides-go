@@ -7,4 +7,5 @@ import (
 
 type Service interface {
 	CreateTide(user *models.User, tide *models.Tide) customError.Error
+	GetGenres() ([]models.Genre, customError.Error)
 }

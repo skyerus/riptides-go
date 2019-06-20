@@ -50,3 +50,23 @@ func CreateTide(w http.ResponseWriter, r *http.Request)  {
 func GetTides(w http.ResponseWriter, r *http.Request)  {
 
 }
+
+func GetGenres(w http.ResponseWriter, r *http.Request) {
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	tideRepo := TideRepository.NewMysqlTideRepository(db)
+	tideService := TideService.NewTideService(tideRepo)
+
+	genres, customErr := tideService.GetGenres()
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, genres)
+}
