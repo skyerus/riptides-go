@@ -5,6 +5,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/models"
+	"github.com/skyerus/riptides-go/pkg/notifications"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyRepository"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
@@ -277,11 +278,29 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	doesUserFollow, customErr := userService.DoesUserFollow(&CurrentUser, &User)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	if doesUserFollow {
+		respondJSON(w, http.StatusOK, nil)
+		return
+	}
+
 	customErr = userService.Follow(CurrentUser, User)
 	if customErr != nil {
 		handleError(w, customErr)
 		return
 	}
+
+	token, customErr := userService.GenerateToken(User.Username)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+	go notifications.PushNotification(token, CurrentUser.Username + " followed you")
 
 	respondJSON(w, http.StatusOK, nil)
 }
