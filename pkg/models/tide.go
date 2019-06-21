@@ -10,7 +10,7 @@ type Tide struct {
 	Tags []Tag `json:"tags"`
 	Participants []User `json:"participants"`
 	About string `json:"about"`
-	ParticipantCount int `json:"participantCount"`
+	ParticipantCount NullInt64 `json:"participantCount"`
 	Favorited bool `json:"favorited"`
 }
 

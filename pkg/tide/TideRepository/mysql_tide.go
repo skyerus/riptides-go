@@ -5,6 +5,7 @@ import (
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/tide"
+	"strconv"
 	"time"
 )
 
@@ -118,9 +119,9 @@ func (mysql mysqlTideRepository) GetGenres() ([]models.Genre, customError.Error)
 func (mysql mysqlTideRepository) GetTides(orderBy string, offset int, limit int) ([]models.Tide, customError.Error) {
 	var tides []models.Tide
 	results, err := mysql.Conn.Query("SELECT tide.*, u.username, u.bio, u.avatar, a.count FROM tide " +
-		"LEFT JOIN ( SELECT tide_id, COUNT(*) as count FROM tide_participant as tp GROUP BY tide_id ORDER BY 2 DESC) AS a ON tide.id = a.tide_id " +
-		"LEFT JOIN user as u ON u.id = tide.user_id" +
-		"GROUP BY tide.id ORDER BY a.count DESC, tide." + orderBy + " DESC LIMIT " + string(offset) + ", " + string(limit))
+		"LEFT JOIN (SELECT tide_id, COUNT(*) as count FROM tide_participant as tp GROUP BY tide_id ORDER BY 2 DESC) AS a ON tide.id = a.tide_id " +
+		"LEFT JOIN user as u ON u.id = tide.user_id " +
+		"GROUP BY tide.id ORDER BY a.count DESC, tide." + orderBy + " DESC LIMIT " + strconv.Itoa(offset) + ", " + strconv.Itoa(limit))
 	if err != nil {
 		return tides, customError.NewGenericHttpError(err)
 	}
@@ -129,7 +130,7 @@ func (mysql mysqlTideRepository) GetTides(orderBy string, offset int, limit int)
 	for results.Next() {
 		var Tide models.Tide
 		var user models.User
-		err = results.Scan(&Tide.ID, &Tide.Name, &Tide.DateCreated, &Tide.About, &user.Username, &user.Bio, &user.Avatar, &Tide.ParticipantCount)
+		err = results.Scan(&Tide.ID, &user.ID, &Tide.Name, &Tide.DateCreated, &Tide.About, &user.Username, &user.Bio, &user.Avatar, &Tide.ParticipantCount)
 		if err != nil {
 			return tides, customError.NewGenericHttpError(err)
 		}
@@ -160,8 +161,8 @@ func (mysql mysqlTideRepository) GetTides(orderBy string, offset int, limit int)
 func (mysql mysqlTideRepository) GetTideParticipants(tide *models.Tide, limit int, offset int) ([]models.User, customError.Error) {
 	var users []models.User
 	results, err := mysql.Conn.Query("SELECT u.username, u.bio, u.avatar FROM user as u, tide as t " +
-		"INNER JOIN tide_participant AS tp ON t.id = tp.tide_id WHERE t.id = " + string(tide.ID) + " AND u.id = tp.user_id " +
-		"LIMIT " + string(offset) + ", " + string(limit))
+		"INNER JOIN tide_participant AS tp ON t.id = tp.tide_id WHERE t.id = " + strconv.Itoa(tide.ID) + " AND u.id = tp.user_id " +
+		"LIMIT " + strconv.Itoa(offset) + ", " + strconv.Itoa(limit))
 	if err != nil {
 		return users, customError.NewGenericHttpError(err)
 	}
@@ -183,8 +184,8 @@ func (mysql mysqlTideRepository) GetTideParticipants(tide *models.Tide, limit in
 func (mysql mysqlTideRepository) GetTideGenres(tide *models.Tide, limit int, offset int) ([]models.Genre, customError.Error) {
 	var genres []models.Genre
 	results, err := mysql.Conn.Query("SELECT g.name FROM genre as g, tide as t " +
-		"INNER JOIN tide_genre as tg on t.id = tg.tide_id WHERE t.id = " + string(tide.ID) + " AND g.id = tg.genre_id " +
-		"LIMIT " + string(offset) + ", " + string(limit))
+		"INNER JOIN tide_genre as tg on t.id = tg.tide_id WHERE t.id = " + strconv.Itoa(tide.ID) + " AND g.id = tg.genre_id " +
+		"LIMIT " + strconv.Itoa(offset) + ", " + strconv.Itoa(limit))
 	if err != nil {
 		return genres, customError.NewGenericHttpError(err)
 	}
@@ -206,8 +207,8 @@ func (mysql mysqlTideRepository) GetTideGenres(tide *models.Tide, limit int, off
 func (mysql mysqlTideRepository) GetTideTags(tide *models.Tide, limit int, offset int) ([]models.Tag, customError.Error) {
 	var tags []models.Tag
 	results, err := mysql.Conn.Query("SELECT tag.name FROM tag, tide AS t " +
-		"INNER JOIN tide_tag as tt ON t.id = tt.tide_id WHERE t.id = " + string(tide.ID) + " AND tag.id = tt.tag_id " +
-		"LIMIT " + string(offset) + ", " + string(limit))
+		"INNER JOIN tide_tag as tt ON t.id = tt.tide_id WHERE t.id = " + strconv.Itoa(tide.ID) + " AND tag.id = tt.tag_id " +
+		"LIMIT " + strconv.Itoa(offset) + ", " + strconv.Itoa(limit))
 	if err != nil {
 		return tags, customError.NewGenericHttpError(err)
 	}
