@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type userService struct {
@@ -119,6 +120,10 @@ func (u userService) Get(username string) (models.User, customError.Error) {
 	return User, nil
 }
 
+func (u userService) GetFromId(id int) (models.User, customError.Error) {
+	return u.userRepo.GetFromId(id)
+}
+
 func (u userService) GetCurrentUser(r *http.Request) (models.User, customError.Error) {
 	User := models.User{}
 	token := r.Header.Get("Authorization")
@@ -206,4 +211,31 @@ func (u userService) Unfollow(currentUser models.User, user models.User) customE
 
 func (u userService) DoesUserFollow(currentUser *models.User, user *models.User) (bool, customError.Error) {
 	return u.userRepo.DoesUserFollow(currentUser, user)
+}
+
+func (u userService) GenerateToken(username string) (string, customError.Error) {
+	var tokenString string
+	expirationTime := time.Now().Add(24 * time.Hour)
+	claims := &models.Claims{
+		Username: username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+
+	jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/private.pem")
+	if err != nil {
+		return tokenString, customError.NewGenericHttpError(err)
+	}
+	defer jwtFile.Close()
+
+	jwtKey, err := ioutil.ReadAll(jwtFile)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err = token.SignedString(jwtKey)
+	if err != nil {
+		return tokenString, customError.NewGenericHttpError(err)
+	}
+
+	return tokenString, nil
 }

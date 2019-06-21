@@ -2,21 +2,15 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/dgrijalva/jwt-go"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyRepository"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
 	"github.com/skyerus/riptides-go/pkg/user/UserService"
-	"io/ioutil"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
-	"time"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -73,26 +67,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expirationTime := time.Now().Add(24 * time.Hour)
-	claims := &models.Claims{
-		Username: creds.Username,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-
-	jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/private.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer jwtFile.Close()
-
-	jwtKey, err := ioutil.ReadAll(jwtFile)
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(jwtKey)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	tokenString, customErr := userService.GenerateToken(creds.Username)
+	if customErr != nil {
+		handleError(w, customErr)
 		return
 	}
 

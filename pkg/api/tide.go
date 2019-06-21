@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/models"
+	"github.com/skyerus/riptides-go/pkg/notifications"
 	"github.com/skyerus/riptides-go/pkg/tide/TideRepository"
 	"github.com/skyerus/riptides-go/pkg/tide/TideService"
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
@@ -143,6 +144,19 @@ func FavoriteTide(w http.ResponseWriter, r *http.Request) {
 			handleError(w, customErr)
 			return
 		}
+
+		User, customErr := userService.GetFromId(Tide.User.ID)
+		if customErr != nil {
+			handleError(w, customErr)
+			return
+		}
+
+		token, customErr := userService.GenerateToken(User.Username)
+		if customErr != nil {
+			handleError(w, customErr)
+			return
+		}
+		go notifications.PushNotification(token, CurrentUser.Username + " favorited your tide")
 	}
 
 	respondJSON(w, http.StatusOK, nil)

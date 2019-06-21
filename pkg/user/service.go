@@ -13,6 +13,7 @@ type Service interface {
 	Authenticate(creds models.Credentials) bool
 	VerifyToken(token string) (*jwt.Token, error)
 	Get(username string) (models.User, customError.Error)
+	GetFromId(id int) (models.User, customError.Error)
 	GetCurrentUser(r *http.Request) (models.User, customError.Error)
 	GetMyFollowing(currentUser models.User, offset int, limit int) ([]models.Following, customError.Error)
 	GetFollowing(currentUser models.User, user models.User, offset int, limit int) ([]models.Following, customError.Error)
@@ -23,4 +24,5 @@ type Service interface {
 	Follow(currentUser models.User, user models.User) customError.Error
 	Unfollow(currentUser models.User, user models.User) customError.Error
 	DoesUserFollow(currentUser *models.User, user *models.User) (bool, customError.Error)
+	GenerateToken(username string) (string, customError.Error)
 }

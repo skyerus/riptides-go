@@ -64,6 +64,25 @@ func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
 	return nil
 }
 
+func (mysql mysqlUserRepository) GetFromId(id int) (models.User, customError.Error) {
+	var User models.User
+	results, err := mysql.Conn.Query("SELECT user.id, user.username, user.password, user.email, user.avatar, user.bio FROM user WHERE id = ?", id)
+	if err != nil {
+		return User, customError.NewGenericHttpError(err)
+	}
+	defer results.Close()
+	res := results.Next()
+	if !res {
+		return User, customError.NewHttpError(http.StatusBadRequest, "No user exists with this id", nil)
+	}
+	err = results.Scan(&User.ID, &User.Username, &User.Password, &User.Email, &User.Avatar, &User.Bio)
+	if err != nil {
+		return User, customError.NewGenericHttpError(err)
+	}
+
+	return User, nil
+}
+
 func (mysql mysqlUserRepository) GetFollowing(user *models.User, offset int, limit int) ([]models.Following, customError.Error) {
 	var users []models.Following
 	query := "SELECT user.id, user.username, user.email, user.avatar, user.bio FROM user LEFT JOIN (SELECT following_id, follower_id FROM user_follow_user GROUP BY id ORDER BY date_created DESC) as f ON user.id = f.follower_id WHERE f.following_id = ? LIMIT ?, ?"

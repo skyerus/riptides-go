@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/dgrijalva/jwt-go"
+	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"io/ioutil"
 	"log"
@@ -20,12 +21,11 @@ func Adapt(h http.Handler, adapters ...Adapter) http.Handler {
 
 func Auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		if len(token) < 7 {
+		token, customErr := GetAuthToken(r)
+		if customErr != nil {
 			respondUnauthorizedRequest(w)
 			return
 		}
-		token = token[7:]
 		claims := &models.Claims{}
 
 		jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/private.pem")
@@ -67,4 +67,12 @@ func Cors(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(w, r)
 	})
+}
+
+func GetAuthToken(r *http.Request) (string, customError.Error) {
+	token := r.Header.Get("Authorization")
+	if len(token) < 7 {
+		return token, customError.NewGenericHttpError(nil)
+	}
+	return token[7:], nil
 }
