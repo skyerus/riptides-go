@@ -51,3 +51,19 @@ func (t tideService) GetGenres() ([]models.Genre, customError.Error) {
 func (t tideService) GetTides(orderBy string, offset int, limit int) ([]models.Tide, customError.Error) {
 	return t.tideRepo.GetTides(orderBy, offset, limit)
 }
+
+func (t tideService) FavoriteTide(tide *models.Tide, user *models.User) customError.Error {
+	return t.tideRepo.FavoriteTide(tide, user)
+}
+
+func (t tideService) UnfavoriteTide(tide *models.Tide, user *models.User) customError.Error {
+	return t.tideRepo.UnfavoriteTide(tide, user)
+}
+
+func (t tideService) IsTideFavorited(tide *models.Tide, user *models.User) (bool, customError.Error) {
+	return t.tideRepo.IsTideFavorited(tide, user)
+}
+
+func (t tideService) GetTide(id int) (models.Tide, customError.Error) {
+	return t.tideRepo.GetTide(id)
+}

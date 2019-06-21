@@ -16,4 +16,8 @@ type Repository interface {
 	GetTideParticipants(tide *models.Tide, limit int, offset int) ([]models.User, customError.Error)
 	GetTideGenres(tide *models.Tide, limit int, offset int) ([]models.Genre, customError.Error)
 	GetTideTags(tide *models.Tide, limit int, offset int) ([]models.Tag, customError.Error)
+	FavoriteTide(tide *models.Tide, user *models.User) customError.Error
+	UnfavoriteTide(tide *models.Tide, user *models.User) customError.Error
+	IsTideFavorited(tide *models.Tide, user *models.User) (bool, customError.Error)
+	GetTide(id int) (models.Tide, customError.Error)
 }

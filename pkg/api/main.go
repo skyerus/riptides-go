@@ -41,6 +41,7 @@ func (a *App) setRouters() {
 	a.AuthRouter.HandleFunc("/spotify/v1/search", Search).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/tides", CreateTide).Methods("POST", "OPTIONS")
 	a.AuthRouter.HandleFunc("/tides/genres", GetGenres).Methods("GET", "OPTIONS")
+	a.AuthRouter.HandleFunc("/tides/{tideId}/favorite", FavoriteTide).Methods("PUT", "OPTIONS")
 }
 
 func (a *App) Run(host string) {

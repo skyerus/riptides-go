@@ -5,6 +5,7 @@ import (
 	"github.com/skyerus/riptides-go/pkg/customError"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/tide"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -225,4 +226,63 @@ func (mysql mysqlTideRepository) GetTideTags(tide *models.Tide, limit int, offse
 	}
 
 	return tags, nil
+}
+
+func (mysql mysqlTideRepository) FavoriteTide(tide *models.Tide, user *models.User) customError.Error {
+	stmtIns, err := mysql.Conn.Prepare("INSERT INTO user_favorite_tide (user_id, tide_id, date_created) VALUES(?, ?, ?)")
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	defer stmtIns.Close()
+
+	_, err = stmtIns.Exec(user.ID, tide.ID, time.Now())
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+
+	return nil
+}
+
+func (mysql mysqlTideRepository) UnfavoriteTide(tide *models.Tide, user *models.User) customError.Error {
+	stmtIns, err := mysql.Conn.Prepare("DELETE FROM user_favorite_tide WHERE user_id = ? AND tide_id = ?")
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	defer stmtIns.Close()
+
+	_, err = stmtIns.Exec(user.ID, tide.ID)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+
+	return nil
+}
+
+func (mysql mysqlTideRepository) IsTideFavorited(tide *models.Tide, user *models.User) (bool, customError.Error) {
+	var exists bool
+	err := mysql.Conn.QueryRow("SELECT EXISTS(SELECT 1 FROM user_favorite_tide WHERE user_id = ? AND tide_id = ?)", user.ID, tide.ID).Scan(&exists)
+	if err != nil {
+		return exists, customError.NewGenericHttpError(err)
+	}
+	return exists, nil
+}
+
+func (mysql mysqlTideRepository) GetTide(id int) (models.Tide, customError.Error) {
+	var Tide models.Tide
+	results, err := mysql.Conn.Query("SELECT * FROM tide WHERE id = ?", id)
+	if err != nil {
+		return Tide, customError.NewGenericHttpError(err)
+	}
+	defer results.Close()
+
+	res := results.Next()
+	if !res {
+		return Tide, customError.NewHttpError(http.StatusBadRequest, "No tide exists", nil)
+	}
+	err = results.Scan(&Tide.ID, &Tide.User.ID, &Tide.Name, &Tide.DateCreated, &Tide.About)
+	if err != nil {
+		return Tide, customError.NewGenericHttpError(err)
+	}
+
+	return Tide, nil
 }
