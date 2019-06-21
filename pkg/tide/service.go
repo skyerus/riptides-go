@@ -8,4 +8,5 @@ import (
 type Service interface {
 	CreateTide(user *models.User, tide *models.Tide) customError.Error
 	GetGenres() ([]models.Genre, customError.Error)
+	GetTides(orderBy string, offset int, limit int) ([]models.Tide, customError.Error)
 }

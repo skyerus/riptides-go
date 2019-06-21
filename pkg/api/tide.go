@@ -8,6 +8,7 @@ import (
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
 	"github.com/skyerus/riptides-go/pkg/user/UserService"
 	"net/http"
+	"strconv"
 )
 
 func CreateTide(w http.ResponseWriter, r *http.Request)  {
@@ -48,7 +49,35 @@ func CreateTide(w http.ResponseWriter, r *http.Request)  {
 }
 
 func GetTides(w http.ResponseWriter, r *http.Request)  {
+	params := r.URL.Query()
+	offset, err := strconv.Atoi(params.Get("offset"))
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+	limit, err := strconv.Atoi(params.Get("limit"))
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
 
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	tideRepo := TideRepository.NewMysqlTideRepository(db)
+	tideService := TideService.NewTideService(tideRepo)
+
+	tides, customErr := tideService.GetTides("date_created", offset, limit)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, tides)
 }
 
 func GetGenres(w http.ResponseWriter, r *http.Request) {

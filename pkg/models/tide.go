@@ -10,6 +10,8 @@ type Tide struct {
 	Tags []Tag `json:"tags"`
 	Participants []User `json:"participants"`
 	About string `json:"about"`
+	ParticipantCount int `json:"participantCount"`
+	Favorited bool `json:"favorited"`
 }
 
 type Genre struct {

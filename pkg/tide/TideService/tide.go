@@ -47,3 +47,7 @@ func (t tideService) CreateTide(user *models.User, tide *models.Tide) customErro
 func (t tideService) GetGenres() ([]models.Genre, customError.Error) {
 	return t.tideRepo.GetGenres()
 }
+
+func (t tideService) GetTides(orderBy string, offset int, limit int) ([]models.Tide, customError.Error) {
+	return t.tideRepo.GetTides(orderBy, offset, limit)
+}
