@@ -286,3 +286,48 @@ func (mysql mysqlTideRepository) GetTide(id int) (models.Tide, customError.Error
 
 	return Tide, nil
 }
+
+func (mysql mysqlTideRepository) GetFavoriteTides(user *models.User, offset int, limit int) ([]models.Tide, customError.Error) {
+	var tides []models.Tide
+	results, err := mysql.Conn.Query(`SELECT tide.*, u.username, u.bio, u.avatar, a.count, uftt.tide_id as uft FROM tide 
+            LEFT JOIN 
+                (
+                    SELECT tide_id, date_created, user_id FROM user_favorite_tide ORDER BY date_created DESC
+                ) AS uft
+            ON tide.id = uft.tide_id AND uft.user_id = ` + strconv.Itoa(user.ID) + ` 
+            LEFT JOIN 
+            (
+                SELECT tide_id, user_id FROM user_favorite_tide ORDER BY date_created DESC
+            ) AS uftt
+            ON tide.id = uftt.tide_id AND uftt.user_id = ` + strconv.Itoa(user.ID) + ` 
+            LEFT JOIN 
+                (
+                    SELECT tide_id, COUNT(*) as count FROM tide_participant as tp GROUP BY tide_id ORDER BY 2 DESC
+                ) AS a
+            ON tide.id = a.tide_id
+            LEFT JOIN user as u
+            ON u.id = uft.user_id
+            WHERE u.id = ` + strconv.Itoa(user.ID) + ` GROUP BY tide.id, uft.date_created, uftt.tide_id ORDER BY uft.date_created DESC 
+            LIMIT ` + strconv.Itoa(offset) + `, ` + strconv.Itoa(limit))
+	if err != nil {
+		return tides, customError.NewGenericHttpError(err)
+	}
+	defer results.Close()
+
+	for results.Next() {
+		var Tide models.Tide
+		var favoritedInt models.NullInt64
+		err = results.Scan(&Tide.ID, &Tide.User.ID, &Tide.Name, &Tide.DateCreated, &Tide.About, &Tide.User.Username, &Tide.User.Bio, &Tide.User.Avatar, &Tide.ParticipantCount, &favoritedInt)
+		if err != nil {
+			return tides, customError.NewGenericHttpError(err)
+		}
+
+		if favoritedInt.Valid {
+			Tide.Favorited = true
+		}
+
+		tides = append(tides, Tide)
+	}
+
+	return tides, nil
+}

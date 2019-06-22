@@ -28,7 +28,7 @@ func respondGenericError(w http.ResponseWriter)  {
 }
 
 func respondBadRequest(w http.ResponseWriter)  {
-	respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Incorrect payload"})
+	respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 }
 
 func respondUnauthorizedRequest(w http.ResponseWriter) {

@@ -13,4 +13,5 @@ type Service interface {
 	UnfavoriteTide(tide *models.Tide, user *models.User) customError.Error
 	IsTideFavorited(tide *models.Tide, user *models.User) (bool, customError.Error)
 	GetTide(id int) (models.Tide, customError.Error)
+	GetFavoriteTides(user *models.User, offset int, limit int) ([]models.Tide, customError.Error)
 }
