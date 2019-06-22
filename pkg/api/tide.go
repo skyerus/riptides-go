@@ -161,3 +161,43 @@ func FavoriteTide(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, nil)
 }
+
+func UnfavoriteTide(w http.ResponseWriter, r *http.Request)  {
+	tideId, err := strconv.Atoi(mux.Vars(r)["tideId"])
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
+	tideRepo := TideRepository.NewMysqlTideRepository(db)
+	tideService := TideService.NewTideService(tideRepo)
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	Tide, customErr := tideService.GetTide(tideId)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	customErr = tideService.UnfavoriteTide(&Tide, &CurrentUser)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, nil)
+}
