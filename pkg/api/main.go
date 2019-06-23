@@ -45,6 +45,7 @@ func (a *App) setRouters() {
 	a.AuthRouter.HandleFunc("/tides/{tideId}/unfavorite", UnfavoriteTide).Methods("PUT", "OPTIONS")
 	a.AuthRouter.HandleFunc("/user/{username}/tides/favorite", GetFavoriteTides).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/user/{username}/tides/favorite/count", GetFavoriteTidesCount).Methods("GET", "OPTIONS")
+	a.AuthRouter.HandleFunc("/user/{username}/tides", GetUserTides).Methods("GET", "OPTIONS")
 }
 
 func (a *App) Run(host string) {
