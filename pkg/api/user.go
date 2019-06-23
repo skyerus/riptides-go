@@ -209,7 +209,7 @@ func GetFollowingCount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	followCount := models.FollowCount{}
+	followCount := models.Count{}
 	followCount.Count, customErr = userService.GetFollowingCount(User)
 	if customErr != nil {
 		handleError(w, customErr)
@@ -238,7 +238,7 @@ func GetFollowersCount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	followCount := models.FollowCount{}
+	followCount := models.Count{}
 	followCount.Count, customErr = userService.GetFollowerCount(User)
 	if customErr != nil {
 		handleError(w, customErr)

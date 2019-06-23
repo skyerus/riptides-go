@@ -22,10 +22,6 @@ type Credentials struct {
 	Username string `json:"username"`
 }
 
-type FollowCount struct {
-	Count int `json:"count"`
-}
-
 type Config struct {
 	Spotify bool `json:"spotify"`
 }

@@ -71,3 +71,7 @@ func (t tideService) GetTide(id int) (models.Tide, customError.Error) {
 func (t tideService) GetFavoriteTides(user *models.User, offset int, limit int) ([]models.Tide, customError.Error) {
 	return t.tideRepo.GetFavoriteTides(user, offset, limit)
 }
+
+func (t tideService) GetFavoriteTidesCount(user *models.User) (int, customError.Error) {
+	return t.tideRepo.GetFavoriteTidesCount(user)
+}

@@ -247,3 +247,38 @@ func GetFavoriteTides(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, tides)
 }
+
+func GetFavoriteTidesCount(w http.ResponseWriter, r *http.Request)  {
+	username, success := mux.Vars(r)["username"]
+	if !success {
+		respondBadRequest(w)
+		return
+	}
+
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
+	tideRepo := TideRepository.NewMysqlTideRepository(db)
+	tideService := TideService.NewTideService(tideRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	count := models.Count{}
+	count.Count, customErr = tideService.GetFavoriteTidesCount(&User)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, count)
+}

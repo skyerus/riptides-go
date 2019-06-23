@@ -48,10 +48,10 @@ func (mysql mysqlUserRepository) DoesUserExistWithEmail(email string) (bool, err
 
 func (mysql mysqlUserRepository) Get(user *models.User) customError.Error {
 	results, err := mysql.Conn.Query("SELECT user.id, user.username, user.password, user.email, user.avatar, user.bio FROM user WHERE username = ?", user.Username)
-	defer results.Close()
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}
+	defer results.Close()
 	res := results.Next()
 	if !res {
 		return customError.NewHttpError(http.StatusBadRequest, "No user exists with this username", nil)
@@ -137,10 +137,10 @@ func (mysql mysqlUserRepository) GetFollowers(user *models.User, offset int, lim
 func (mysql mysqlUserRepository) GetFollowingCount(user *models.User) (int, customError.Error) {
 	var number int
 	results, err := mysql.Conn.Query("SELECT COUNT(u.id) FROM riptides.user_follow_user as u WHERE u.following_id = ?", user.ID)
-	defer results.Close()
 	if err != nil {
 		return number, customError.NewGenericHttpError(err)
 	}
+	defer results.Close()
 	res := results.Next()
 	if !res {
 		return number, customError.NewGenericHttpError(nil)
@@ -156,10 +156,10 @@ func (mysql mysqlUserRepository) GetFollowingCount(user *models.User) (int, cust
 func (mysql mysqlUserRepository) GetFollowerCount(user *models.User) (int, customError.Error) {
 	var number int
 	results, err := mysql.Conn.Query("SELECT COUNT(u.id) FROM riptides.user_follow_user as u WHERE u.follower_id = ?", user.ID)
-	defer results.Close()
 	if err != nil {
 		return number, customError.NewGenericHttpError(err)
 	}
+	defer results.Close()
 	res := results.Next()
 	if !res {
 		return number, customError.NewGenericHttpError(nil)
