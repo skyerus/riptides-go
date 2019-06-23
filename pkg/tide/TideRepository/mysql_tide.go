@@ -421,3 +421,22 @@ func (mysql mysqlTideRepository) GetUserTides(user *models.User, offset int, lim
 
 	return tides, nil
 }
+
+func (mysql mysqlTideRepository) GetUserTidesCount(user *models.User) (int, customError.Error) {
+	var number int
+	results, err := mysql.Conn.Query("SELECT COUNT(t.id) FROM tide as t WHERE t.user_id = ?", user.ID)
+	if err != nil {
+		return number, customError.NewGenericHttpError(err)
+	}
+	defer results.Close()
+	res := results.Next()
+	if !res {
+		return number, customError.NewGenericHttpError(nil)
+	}
+	err = results.Scan(&number)
+	if err != nil {
+		return number, customError.NewGenericHttpError(nil)
+	}
+
+	return number, nil
+}

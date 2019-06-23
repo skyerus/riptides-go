@@ -23,4 +23,5 @@ type Repository interface {
 	GetFavoriteTides(user *models.User, offset int, limit int) ([]models.Tide, customError.Error)
 	GetFavoriteTidesCount(user *models.User) (int, customError.Error)
 	GetUserTides(user *models.User, offset int, limit int) ([]models.Tide, customError.Error)
+	GetUserTidesCount(user *models.User) (int, customError.Error)
 }
