@@ -16,7 +16,7 @@ type Handler interface {
 
 type RequestHandler interface {
 	SendRequest(request *http.Request, user *models.User, authorized bool, allowRecursion bool) (*http.Response, customError.Error)
-	sendRefreshRequest(client *http.Client, user *models.User) customError.Error
+	SendRefreshRequest(client *http.Client, user *models.User) customError.Error
 }
 
 type requestHandler struct {
@@ -28,10 +28,23 @@ func NewRequestHandler(handler Handler) RequestHandler {
 }
 
 func (handler requestHandler) SendRequest(request *http.Request, user *models.User, authorized bool, allowRecursion bool) (*http.Response, customError.Error) {
+	var response *http.Response
 	client := &http.Client{}
 
 	if authorized {
-		handler.Handler.HandleAuthorizedRequest(request, user)
+		customErr := handler.Handler.HandleAuthorizedRequest(request, user)
+		if customErr != nil {
+			if customErr.Code() == -1 {
+				if allowRecursion {
+					customErr := handler.SendRefreshRequest(client, user)
+					if customErr != nil {
+						return response, customErr
+					}
+					return handler.SendRequest(request, user, true, false)
+				}
+			}
+			return response, customErr
+		}
 	}
 
 	response, err := client.Do(request)
@@ -40,7 +53,7 @@ func (handler requestHandler) SendRequest(request *http.Request, user *models.Us
 	}
 	if response.StatusCode == http.StatusUnauthorized {
 		if authorized && allowRecursion {
-			customErr := handler.sendRefreshRequest(client, user)
+			customErr := handler.SendRefreshRequest(client, user)
 			if customErr != nil {
 				return response, customErr
 			}
@@ -62,7 +75,7 @@ func (handler requestHandler) SendRequest(request *http.Request, user *models.Us
 	return response, nil
 }
 
-func (handler requestHandler) sendRefreshRequest(client *http.Client, user *models.User) customError.Error {
+func (handler requestHandler) SendRefreshRequest(client *http.Client, user *models.User) customError.Error {
 	request, customErr := handler.Handler.GetRefreshRequest(user)
 	if customErr != nil {
 		return customErr
@@ -72,7 +85,10 @@ func (handler requestHandler) sendRefreshRequest(client *http.Client, user *mode
 	if err != nil {
 		return customError.NewGenericHttpError(err)
 	}
-	handler.Handler.SaveCredentials(response, user)
+	customErr = handler.Handler.SaveCredentials(response, user)
+	if customErr != nil {
+		return customErr
+	}
 
 	return nil
 }

@@ -230,6 +230,9 @@ func (u userService) GenerateToken(username string) (string, customError.Error) 
 	defer jwtFile.Close()
 
 	jwtKey, err := ioutil.ReadAll(jwtFile)
+	if err != nil {
+		return tokenString, customError.NewGenericHttpError(err)
+	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err = token.SignedString(jwtKey)

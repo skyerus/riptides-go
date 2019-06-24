@@ -47,6 +47,7 @@ func (a *App) setRouters() {
 	a.AuthRouter.HandleFunc("/user/{username}/tides/favorite/count", GetFavoriteTidesCount).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/user/{username}/tides", GetUserTides).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/user/{username}/tides/count", GetUserTidesCount).Methods("GET", "OPTIONS")
+	a.AuthRouter.HandleFunc("/avatar", UploadAvatar).Methods("POST", "OPTIONS")
 }
 
 func (a *App) Run(host string) {

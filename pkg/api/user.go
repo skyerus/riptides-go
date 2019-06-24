@@ -2,16 +2,19 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/notifications"
+	"github.com/skyerus/riptides-go/pkg/RedisClient"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyRepository"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
 	"github.com/skyerus/riptides-go/pkg/user/UserService"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -409,4 +412,48 @@ func GetMyConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, userConfig)
+}
+
+func UploadAvatar(w http.ResponseWriter, r *http.Request)  {
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
+
+	CurrentUser, customErr := userService.GetCurrentUser(r)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	err = r.ParseMultipartForm(1000000)
+	if err != nil {
+		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Images are limited to 1MB"})
+		return
+	}
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+	defer file.Close()
+
+	mime := handler.Header.Get("Content-Type")
+	if mime != "image/png" || mime != "image/jpeg" {
+		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Please use an image of type jpeg or png"})
+		return
+	}
+
+	fileName := handler.Filename + strconv.Itoa(int(time.Now().Unix()))
+
+	redisClient := RedisClient.NewRedisClient()
+	defer redisClient.Close()
+
+
 }
