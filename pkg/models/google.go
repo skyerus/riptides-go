@@ -2,6 +2,8 @@ package models
 
 import "github.com/dgrijalva/jwt-go"
 
+const GoogleStorageUploadUrl = "https://www.googleapis.com/upload/storage/v1/b/riptides-cdn/o?uploadType=media"
+
 type GoogleClaims struct {
 	Scope string `json:"scope"`
 	jwt.StandardClaims
@@ -19,4 +21,8 @@ type GoogleCredentials struct {
 type GoogleAccessToken struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn int `json:"expires_in"`
+}
+
+type GoogleUploadResponse struct {
+	MediaLink string `json:"mediaLink"`
 }

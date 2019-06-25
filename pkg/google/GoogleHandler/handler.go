@@ -79,9 +79,14 @@ func (g googleHandler) GetRefreshRequest(user *models.User) (*http.Request, cust
 			IssuedAt: now,
 		},
 	}
+	jwtKey := []byte(googleCreds.PrivateKey)
+	parsedKey, err := jwt.ParseRSAPrivateKeyFromPEM(jwtKey)
+	if err != nil {
+		return request, customError.NewGenericHttpError(err)
+	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	tokenString, err = token.SignedString(googleCreds.PrivateKey)
+	tokenString, err = token.SignedString(parsedKey)
 	if err != nil {
 		return request, customError.NewGenericHttpError(err)
 	}

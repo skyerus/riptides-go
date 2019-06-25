@@ -2,12 +2,13 @@ package api
 
 import (
 	"encoding/json"
-	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/skyerus/riptides-go/pkg/RedisClient"
+	"github.com/skyerus/riptides-go/pkg/google/GoogleHandler"
+	"github.com/skyerus/riptides-go/pkg/handler"
 	"github.com/skyerus/riptides-go/pkg/models"
 	"github.com/skyerus/riptides-go/pkg/notifications"
-	"github.com/skyerus/riptides-go/pkg/RedisClient"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyRepository"
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
@@ -437,23 +438,50 @@ func UploadAvatar(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 
-	file, handler, err := r.FormFile("file")
+	file, fileHandler, err := r.FormFile("file")
 	if err != nil {
 		respondBadRequest(w)
 		return
 	}
 	defer file.Close()
 
-	mime := handler.Header.Get("Content-Type")
-	if mime != "image/png" || mime != "image/jpeg" {
+	mime := fileHandler.Header.Get("Content-Type")
+	if mime != "image/png" && mime != "image/jpeg" {
 		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Please use an image of type jpeg or png"})
 		return
 	}
 
-	fileName := handler.Filename + strconv.Itoa(int(time.Now().Unix()))
+	fileName := fileHandler.Filename + strconv.Itoa(int(time.Now().Unix()))
 
 	redisClient := RedisClient.NewRedisClient()
 	defer redisClient.Close()
 
+	googleHandler := GoogleHandler.NewGoogleHandler(redisClient)
+	Handler := handler.NewRequestHandler(googleHandler)
 
+	req, err := http.NewRequest("POST", models.GoogleStorageUploadUrl + "&name=" + fileName, file)
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+
+	req.Header.Add("Content-Type", mime)
+	req.Header.Add("Content-Length", strconv.Itoa(int(fileHandler.Size)))
+
+	var googleResponse models.GoogleUploadResponse
+	response, customErr := Handler.SendRequest(req, &CurrentUser, true, true)
+	err = json.NewDecoder(response.Body).Decode(&googleResponse)
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+
+	CurrentUser.Avatar = googleResponse.MediaLink
+	customErr = userService.SaveAvatar(&CurrentUser)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, nil)
 }

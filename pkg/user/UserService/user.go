@@ -242,3 +242,7 @@ func (u userService) GenerateToken(username string) (string, customError.Error) 
 
 	return tokenString, nil
 }
+
+func (u userService) SaveAvatar(currentUser *models.User) customError.Error {
+	return u.userRepo.SaveAvatar(currentUser)
+}

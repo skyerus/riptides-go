@@ -25,4 +25,5 @@ type Service interface {
 	Unfollow(currentUser models.User, user models.User) customError.Error
 	DoesUserFollow(currentUser *models.User, user *models.User) (bool, customError.Error)
 	GenerateToken(username string) (string, customError.Error)
+	SaveAvatar(currentUser *models.User) customError.Error
 }

@@ -201,3 +201,17 @@ func (mysql mysqlUserRepository) Unfollow(currentUser *models.User, user *models
 
 	return nil
 }
+
+func (mysql mysqlUserRepository) SaveAvatar(currentUser *models.User) customError.Error {
+	stmtIns, err := mysql.Conn.Prepare("UPDATE user SET avatar = ? WHERE id = ?")
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	defer stmtIns.Close()
+
+	_, err = stmtIns.Exec(currentUser.Avatar, currentUser.ID)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	return nil
+}

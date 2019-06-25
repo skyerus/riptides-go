@@ -18,4 +18,5 @@ type Repository interface {
 	GetFollowerCount(user *models.User) (int, customError.Error)
 	Follow(currentUser *models.User, user *models.User) customError.Error
 	Unfollow(currentUser *models.User, user *models.User) customError.Error
+	SaveAvatar(currentUser *models.User) customError.Error
 }
