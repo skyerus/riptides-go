@@ -159,6 +159,54 @@ func (mysql mysqlTideRepository) GetTides(orderBy string, offset int, limit int)
 	return tides, nil
 }
 
+func (mysql mysqlTideRepository) GetTidesAuth(currentUser *models.User, orderBy string, offset int, limit int) ([]models.Tide, customError.Error) {
+	var tides []models.Tide
+	results, err := mysql.Conn.Query("SELECT tide.*, u.username, u.bio, u.avatar, a.count, uft.tide_id as uft FROM tide " +
+		"LEFT JOIN (SELECT tide_id, COUNT(*) as count FROM tide_participant as tp GROUP BY tide_id ORDER BY 2 DESC) AS a ON tide.id = a.tide_id " +
+		"LEFT JOIN user as u ON u.id = tide.user_id " +
+		"LEFT JOIN (SELECT tide_id, user_id FROM user_favorite_tide ORDER BY date_created DESC) as uft ON tide.id = uft.tide_id AND uft.user_id = " + strconv.Itoa(currentUser.ID) +
+		" GROUP BY tide.id ORDER BY a.count DESC, tide." + orderBy + " DESC LIMIT " + strconv.Itoa(offset) + ", " + strconv.Itoa(limit))
+	if err != nil {
+		return tides, customError.NewGenericHttpError(err)
+	}
+	defer results.Close()
+
+	for results.Next() {
+		var Tide models.Tide
+		var user models.User
+		var favoritedInt models.NullInt64
+		err = results.Scan(&Tide.ID, &user.ID, &Tide.Name, &Tide.DateCreated, &Tide.About, &user.Username, &user.Bio, &user.Avatar, &Tide.ParticipantCount, &favoritedInt)
+		if err != nil {
+			return tides, customError.NewGenericHttpError(err)
+		}
+		Tide.User = user
+
+		if favoritedInt.Valid {
+			Tide.Favorited = true
+		}
+
+		var customErr customError.Error
+		Tide.Participants, customErr = mysql.GetTideParticipants(&Tide, 20, 0)
+		if customErr != nil {
+			return tides, customErr
+		}
+
+		Tide.Genres, customErr = mysql.GetTideGenres(&Tide, 20, 0)
+		if customErr != nil {
+			return tides, customErr
+		}
+
+		Tide.Tags, customErr = mysql.GetTideTags(&Tide, 20, 0)
+		if customErr != nil {
+			return tides, customErr
+		}
+
+		tides = append(tides, Tide)
+	}
+
+	return tides, nil
+}
+
 func (mysql mysqlTideRepository) GetTideParticipants(tide *models.Tide, limit int, offset int) ([]models.User, customError.Error) {
 	var users []models.User
 	results, err := mysql.Conn.Query("SELECT u.username, u.bio, u.avatar FROM user as u, tide as t " +

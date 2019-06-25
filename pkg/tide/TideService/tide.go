@@ -87,3 +87,7 @@ func (t tideService) GetUserTidesCount(user *models.User) (*models.Count, custom
 
 	return &count, customErr
 }
+
+func (t tideService) GetTidesAuth(currentUser *models.User, orderBy string, offset int, limit int) ([]models.Tide, customError.Error) {
+	return t.tideRepo.GetTidesAuth(currentUser, orderBy, offset, limit)
+}
