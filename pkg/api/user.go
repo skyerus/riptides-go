@@ -1,10 +1,13 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"github.com/go-redis/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/RedisClient"
+	"github.com/skyerus/riptides-go/pkg/email"
 	"github.com/skyerus/riptides-go/pkg/google/GoogleHandler"
 	"github.com/skyerus/riptides-go/pkg/handler"
 	"github.com/skyerus/riptides-go/pkg/models"
@@ -13,7 +16,12 @@ import (
 	"github.com/skyerus/riptides-go/pkg/spotify/SpotifyService"
 	"github.com/skyerus/riptides-go/pkg/user/UserRepository"
 	"github.com/skyerus/riptides-go/pkg/user/UserService"
+	"golang.org/x/crypto/bcrypt"
+	"html/template"
+	"log"
+	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -480,6 +488,73 @@ func UploadAvatar(w http.ResponseWriter, r *http.Request)  {
 	customErr = userService.SaveAvatar(&CurrentUser)
 	if customErr != nil {
 		handleError(w, customErr)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, nil)
+}
+
+func ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	username := mux.Vars(r)["username"]
+
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
+
+	User, customErr := userService.Get(username)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	key := username + "_password_token"
+	redisClient := RedisClient.NewRedisClient()
+	defer redisClient.Close()
+
+	_, err = redisClient.Get(key).Result()
+	if err == nil {
+		respondError(w, http.StatusUnprocessableEntity, "A reset email has been issued recently, please check your spam folder")
+		return
+	} else if err != redis.Nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+
+	token := make([]byte, 40)
+	rand.Read(token)
+	hashedBytes, err := bcrypt.GenerateFromPassword(token, bcrypt.DefaultCost)
+	s := time.Now().Unix()
+	tokenString := string(hashedBytes) + strconv.Itoa(int(s))
+
+	redisClient.Set(key, tokenString, time.Duration(3600) * time.Second)
+
+	link := os.Getenv("RIPTIDES_HOST") + "/reset/password?" + "token=" + tokenString + "&username=" + username
+
+	tmpl := template.Must(template.ParseFiles(os.Getenv("FORGOT_PASSWORD_TPL")))
+
+	var tplBuffer bytes.Buffer
+	err = tmpl.Execute(&tplBuffer, models.ForgotPasswordData{
+		Username: username,
+		Link: link,
+	})
+
+	mg := email.NewMailgun()
+
+	emailStr := tplBuffer.String()
+	message := mg.NewMessage("riptides <noreply@riptides.io>", "Forgot password", "", User.Email)
+	message.SetHtml(emailStr)
+
+	_, _, err = mg.Send(message)
+	if err != nil {
+		log.Println(err)
+		respondGenericError(w)
 		return
 	}
 

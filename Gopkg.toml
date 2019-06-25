@@ -48,3 +48,7 @@
 [[constraint]]
   name = "github.com/go-redis/redis"
   version = "6.15.3"
+
+[[constraint]]
+  name = "github.com/mailgun/mailgun-go"
+  version = "2.0.0"
