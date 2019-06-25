@@ -20,19 +20,19 @@ func respondJSON(w http.ResponseWriter, status int, payload interface{})  {
 }
 
 func respondError(w http.ResponseWriter, code int, message string) {
-	respondJSON(w, code, map[string]string{"error": message})
+	respondJSON(w, code, map[string]string{"message": message})
 }
 
 func respondGenericError(w http.ResponseWriter)  {
-	respondJSON(w, http.StatusInternalServerError, map[string]string{"error": "Oops, something went wrong. Please try again later."})
+	respondJSON(w, http.StatusInternalServerError, map[string]string{"message": "Oops, something went wrong. Please try again later."})
 }
 
 func respondBadRequest(w http.ResponseWriter)  {
-	respondJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+	respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Invalid request"})
 }
 
 func respondUnauthorizedRequest(w http.ResponseWriter) {
-	respondJSON(w, http.StatusUnauthorized, map[string]string{"error": "Unauthorized request"})
+	respondJSON(w, http.StatusUnauthorized, map[string]string{"message": "Unauthorized request"})
 }
 
 func handleError(w http.ResponseWriter, customError customError.Error)  {

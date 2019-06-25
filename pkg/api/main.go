@@ -29,6 +29,7 @@ func (a *App) setRouters() {
 	a.Router.HandleFunc("/api/spotify/authorize", RedirectSpotifyAuthorize).Methods("GET", "OPTIONS")
 	a.Router.HandleFunc("/api/tides", GetTides).Methods("GET", "OPTIONS")
 	a.Router.HandleFunc("/api/user/{username}/forgot/password", ForgotPassword).Methods("POST", "OPTIONS")
+	a.Router.HandleFunc("/api/user/reset/password", ResetPassword).Methods("POST", "OPTIONS")
 	a.AuthRouter.HandleFunc("/user/{username}/following", GetFollowing).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/user/{username}/followers", GetFollowers).Methods("GET", "OPTIONS")
 	a.AuthRouter.HandleFunc("/user/{username}/following/count", GetFollowingCount).Methods("GET", "OPTIONS")

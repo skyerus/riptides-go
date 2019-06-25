@@ -19,4 +19,5 @@ type Repository interface {
 	Follow(currentUser *models.User, user *models.User) customError.Error
 	Unfollow(currentUser *models.User, user *models.User) customError.Error
 	SaveAvatar(currentUser *models.User) customError.Error
+	UpdatePassword(currentUser *models.User) customError.Error
 }

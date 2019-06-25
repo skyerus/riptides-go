@@ -31,6 +31,12 @@ type UserConfig struct {
 	Config `json:"config"`
 }
 
+type ResetPassword struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Token string `json:"token"`
+}
+
 type Claims struct {
 	Username string `json:"username"`
 	jwt.StandardClaims

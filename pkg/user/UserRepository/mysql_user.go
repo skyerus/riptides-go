@@ -215,3 +215,17 @@ func (mysql mysqlUserRepository) SaveAvatar(currentUser *models.User) customErro
 	}
 	return nil
 }
+
+func (mysql mysqlUserRepository) UpdatePassword(currentUser *models.User) customError.Error {
+	stmtIns, err := mysql.Conn.Prepare("UPDATE user SET password = ? WHERE id = ?")
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	defer stmtIns.Close()
+
+	_, err = stmtIns.Exec(currentUser.Password, currentUser.ID)
+	if err != nil {
+		return customError.NewGenericHttpError(err)
+	}
+	return nil
+}

@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/skyerus/riptides-go/pkg/RedisClient"
+	"github.com/skyerus/riptides-go/pkg/crypto"
 	"github.com/skyerus/riptides-go/pkg/email"
 	"github.com/skyerus/riptides-go/pkg/google/GoogleHandler"
 	"github.com/skyerus/riptides-go/pkg/handler"
@@ -557,6 +558,69 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		respondGenericError(w)
 		return
 	}
+
+	respondJSON(w, http.StatusAccepted, map[string]string{"message": "An email has been sent with further instructions, please check your spam folder."})
+}
+
+func ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var reset models.ResetPassword
+	err := json.NewDecoder(r.Body).Decode(&reset)
+	if err != nil {
+		respondBadRequest(w)
+		return
+	}
+
+	db, err := openDb()
+	if err != nil {
+		respondGenericError(w)
+		return
+	}
+	defer db.Close()
+
+	userRepo := UserRepository.NewMysqlUserRepository(db)
+	userService := UserService.NewUserService(userRepo)
+
+	User, customErr := userService.Get(reset.Username)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	c := make(chan string, 1)
+	e := make(chan error, 1)
+	hash := crypto.Hash{}
+	go hash.Generate(reset.Password, c, e)
+
+	redisClient := RedisClient.NewRedisClient()
+	defer redisClient.Close()
+
+	key := User.Username + "_password_token"
+	storedToken, err := redisClient.Get(key).Result()
+	if err == redis.Nil || storedToken != reset.Token {
+		respondError(w, http.StatusUnauthorized, "Invalid token, may have expired. Please try again")
+		return
+	} else if err != nil {
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+
+	select {
+	case User.Password = <-c:
+		break
+	case err = <-e:
+		log.Println(err)
+		respondGenericError(w)
+		return
+	}
+
+	customErr = userService.UpdatePassword(&User)
+	if customErr != nil {
+		handleError(w, customErr)
+		return
+	}
+
+	redisClient.Del(key)
 
 	respondJSON(w, http.StatusOK, nil)
 }

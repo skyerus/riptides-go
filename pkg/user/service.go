@@ -26,4 +26,5 @@ type Service interface {
 	DoesUserFollow(currentUser *models.User, user *models.User) (bool, customError.Error)
 	GenerateToken(username string) (string, customError.Error)
 	SaveAvatar(currentUser *models.User) customError.Error
+	UpdatePassword(currentUser *models.User) customError.Error
 }
