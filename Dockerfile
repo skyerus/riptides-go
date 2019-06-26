@@ -13,7 +13,7 @@ WORKDIR /
 RUN go build -gcflags "all=-N -l" -o /riptides-go github.com/skyerus/riptides-go
 
 # Final stage
-FROM alpine:3.9
+FROM golang:1.12.5-alpine3.9
 
 ENV CGO_ENABLED 0
 RUN apk add --no-cache libc6-compat
