@@ -19,4 +19,5 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /
 COPY --from=build-env /riptides-go /
+COPY --from=build-env /go/src/github.com/skyerus/riptides-go/assets /go/src/github.com/skyerus/riptides-go/assets
 CMD ["/riptides-go"]
