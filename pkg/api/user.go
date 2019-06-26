@@ -48,6 +48,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	userRepo := UserRepository.NewMysqlUserRepository(db)
 	userService := UserService.NewUserService(userRepo)
+	user.Avatar = "https://www.synbio.cam.ac.uk/images/avatar-generic.jpg/image_preview"
 	customError := userService.Create(user)
 
 	if customError != nil {
