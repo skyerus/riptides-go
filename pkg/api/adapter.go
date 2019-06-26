@@ -28,16 +28,25 @@ func Auth(h http.Handler) http.Handler {
 		}
 		claims := &models.Claims{}
 
-		jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/private.pem")
+		jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/public.key")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer jwtFile.Close()
 
 		jwtKey, err := ioutil.ReadAll(jwtFile)
+		if err != nil {
+			respondUnauthorizedRequest(w)
+			return
+		}
+		key, err := jwt.ParseRSAPublicKeyFromPEM(jwtKey)
+		if err != nil {
+			respondUnauthorizedRequest(w)
+			return
+		}
 
 		tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
+			return key, nil
 		})
 
 		if err != nil {
@@ -45,6 +54,7 @@ func Auth(h http.Handler) http.Handler {
 				respondUnauthorizedRequest(w)
 				return
 			}
+			log.Println(err)
 			respondUnauthorizedRequest(w)
 			return
 		}

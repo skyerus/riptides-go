@@ -223,7 +223,7 @@ func (u userService) GenerateToken(username string) (string, customError.Error) 
 		},
 	}
 
-	jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/private.pem")
+	jwtFile, err := os.Open(os.Getenv("JWT_PATH") + "/private.key")
 	if err != nil {
 		return tokenString, customError.NewGenericHttpError(err)
 	}
@@ -234,8 +234,13 @@ func (u userService) GenerateToken(username string) (string, customError.Error) 
 		return tokenString, customError.NewGenericHttpError(err)
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err = token.SignedString(jwtKey)
+	key, err := jwt.ParseRSAPrivateKeyFromPEM(jwtKey)
+	if err != nil {
+		return tokenString, customError.NewGenericHttpError(err)
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	tokenString, err = token.SignedString(key)
 	if err != nil {
 		return tokenString, customError.NewGenericHttpError(err)
 	}

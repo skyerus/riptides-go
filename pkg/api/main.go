@@ -23,7 +23,8 @@ func (a *App) Initialize() {
 }
 
 func (a *App) setRouters() {
-	a.Router.HandleFunc("/healthcheck", HealthCheck).Methods("GET", "OPTIONS")
+	a.Router.HandleFunc("/", HealthCheck).Methods("GET", "OPTIONS")
+	a.Router.HandleFunc("/api", ApiHealthCheck).Methods("GET", "OPTIONS")
 	a.Router.HandleFunc("/api/user", CreateUser).Methods("POST", "OPTIONS")
 	a.Router.HandleFunc("/api/login", Login).Methods("POST", "OPTIONS", "OPTIONS")
 	a.Router.HandleFunc("/api/spotify/authorize", RedirectSpotifyAuthorize).Methods("GET", "OPTIONS")
