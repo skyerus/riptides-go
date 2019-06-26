@@ -76,7 +76,10 @@ func (s spotifyService) Play(user *models.User, spotifyPlay models.SpotifyPlay) 
 		return customError.NewGenericHttpError(err)
 	}
 
-	_, customErr := Handler.SendRequest(request, user, true, true)
+	response, customErr := Handler.SendRequest(request, user, true, true)
+	if response.StatusCode == http.StatusNotFound {
+		return customError.NewHttpError(http.StatusNotFound, "No active device found", nil)
+	}
 
 	return customErr
 }
